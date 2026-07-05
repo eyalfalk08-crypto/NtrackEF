@@ -5,10 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a1a2e">
+<link rel="manifest" href="manifest.json">
 <title>מערכת כשירויות עובדים</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -67,7 +69,14 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .status-green{background:#38a169;}.status-orange{background:#e6a817;}.status-red{background:#e53e3e;}
 .date-input{border:1.5px solid #e0e0e0;border-radius:8px;padding:7px 9px;font-size:13px;outline:none;width:140px;cursor:pointer;-webkit-appearance:none;}
 .date-input:focus{border-color:#1a1a2e;}
-.btn-today{background:#eef2ff;color:#1a1a2e;border:none;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:4px;}
+.btn-today{background:#eef2ff;color:#1a1a2e;border:none;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:4px;margin-top:6px;}
+.date-cell{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.date-picker-manual{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px;}
+.dsel{padding:6px 4px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;background:white;-webkit-appearance:none;cursor:pointer;}
+.dsel.day-sel{width:54px;}
+.dsel.month-sel{width:64px;}
+.dsel.year-sel{width:66px;}
+.btn-save-date{background:#1a1a2e;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .freq-badge{font-size:11px;color:#888;background:#f5f5f5;padding:3px 8px;border-radius:8px;white-space:nowrap;}
 .next-badge{display:inline-block;font-size:12px;font-weight:700;}
 .badge-days{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;margin-right:4px;}
@@ -142,6 +151,9 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
   tbody td{display:flex;align-items:center;justify-content:space-between;padding:4px 8px;font-size:13px;border:none;}
   tbody td:before{content:attr(data-label);font-size:11px;color:#888;font-weight:700;margin-left:.5rem;white-space:nowrap;flex-shrink:0;}
   .date-input{max-width:130px;}
+  .date-cell{flex:1;flex-direction:column;align-items:stretch;gap:8px;width:100%;}
+  .date-cell .date-input{max-width:100%;width:100%;}
+  .date-cell .btn-today{margin-right:0;width:100%;padding:9px;}
   .summary-bar{grid-template-columns:repeat(3,1fr);}
 }
 </style>
@@ -286,18 +298,11 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
           <div class="pin-err" id="master-pin-err"></div>
           <div class="panel-save-msg" id="master-pin-msg">הקוד עודכן בהצלחה!</div>
         </div>
-      </div>
-      <div class="panel-card">
-        <h3>איפוס נתונים</h3>
-        <p class="panel-sub">איפוס תאריכי ביצוע שנשמרו — לעובד מסוים או לכל העובדים. הכשירויות עצמן (השמות והתדירויות) לא נמחקות, רק תאריכי הביצוע.</p>
-        <div class="warning-box">⚠️ הפעולה בלתי הפיכה! לאחר איפוס, הכשירויות שנבחרו יחזרו למצב "טרם בוצע לראשונה" (אדום). אין דרך לשחזר נתונים שנמחקו.</div>
-        <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem;">
-          <label style="font-weight:700;font-size:14px;">בחר עובד:</label>
-          <select id="reset-emp-select" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;background:white;-webkit-appearance:none;"></select>
+        <div class="info-box" style="margin-top:1.5rem;">
+          <b>לגבי התראות לטלפון:</b> המערכת שולחת התראות Push אמיתיות גם כשהאפליקציה סגורה, דרך פונקציית שרת (Firebase Cloud Function) שרצה פעם ביום ובודקת כשירויות שפגות או עומדות לפוג.
+          כדי שזה יעבוד: יש לפרוס את הקבצים שבתיקיית <code>functions/</code> ואת <code>firebase-messaging-sw.js</code> (ראו קובץ ההנחיות DEPLOY_INSTRUCTIONS.md), ולאשר הרשאת התראות בדפדפן/בטלפון בעת ההתחברות.
         </div>
-        <button class="btn-primary" style="background:#e6a817;" onclick="resetSelectedEmployee()">אפס נתונים לעובד שנבחר</button>
-        <button class="btn-primary" style="background:#e53e3e;margin-right:.6rem;" onclick="resetAllData()">אפס נתונים לכל העובדים</button>
-        <div class="panel-save-msg" id="reset-msg">האיפוס בוצע!</div>
+        <button class="btn-primary" onclick="setupPushNotifications(currentUser?currentUser.id:'master')" style="margin-top:.8rem;">הפעל / רענן התראות בטלפון זה</button>
       </div>
     </div>
   </div>
@@ -320,22 +325,25 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 <script>
 
 // ============================================================
-// ⬇️  זהו פרויקט עצמאי ונפרד לחלוטין — הדביקו כאן את פרטי ה-Firebase
-//     של הפרויקט *החדש* שתקימו (לא של המערכת הקודמת!), כדי שהנתונים
-//     לא יתערבבו בין המערכות. ראו NEW_PROJECT_SETUP.md להוראות.
+// ⬇️  פרטי Firebase (הועתקו מהמערכת הקיימת שלכם — ניתן להשאיר
+//     כדי לחסוך הקמת פרויקט נוסף, או להחליף בפרויקט נפרד משלכם)
 // ============================================================
 const firebaseConfig = {
-  apiKey:            "AIzaSyA6gxbG_AnE8UOoL6i6n8JYLCQAp_Vrwo4",
-  authDomain:        "ntrackef.firebaseapp.com",
-  databaseURL:       "https://ntrackef-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:         "ntrackef",
-  storageBucket:     "ntrackef.firebasestorage.app",
-  messagingSenderId: "739248451672",
-  appId:             "1:739248451672:web:484984031cf9003e9dda2d"
+  apiKey:            "AIzaSyDyTN8H7FwyhA9wjsEH97fwJB2TGJgEfpA",
+  authDomain:        "work-system-73906.firebaseapp.com",
+  databaseURL:       "https://work-system-73906-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "work-system-73906",
+  storageBucket:     "work-system-73906.firebasestorage.app",
+  messagingSenderId: "227399680422",
+  appId:             "1:227399680422:web:4911726e11a17572b40f67"
 };
 // ============================================================
 
-let app=null, db=null;
+let app=null, db=null, messaging=null;
+
+// ⬇️ הדביקו כאן את מפתח ה-VAPID שתקבלו מ-Firebase Console:
+// Project settings > Cloud Messaging > Web configuration > Generate key pair
+const VAPID_KEY = "REPLACE_WITH_YOUR_VAPID_KEY";
 
 const DEFAULT_EMPLOYEES = [
   {id:'emp1',name:'עובד 1',pin:'0001'},{id:'emp2',name:'עובד 2',pin:'0002'},
@@ -408,6 +416,55 @@ function daysBetween(fromStr,toStr){
 }
 function formatDate(d){if(!d)return'';const[y,m,day]=d.split('-');return day+'/'+m+'/'+y;}
 
+// ===== MANUAL DATE PICKER (day/month/year selects) =====
+// Native <input type="date"> on some phones opens a wheel pre-set to "today" and
+// can save that default before the person actually chooses a date. Explicit
+// selects force a deliberate choice for each part, so nothing gets saved by accident.
+const HEBREW_MONTHS_SHORT=['ינו','פבר','מרץ','אפר','מאי','יונ','יול','אוג','ספט','אוק','נוב','דצמ'];
+function parseDateParts(dateStr){
+  if(!dateStr) return {d:'',m:'',y:''};
+  const[y,m,d]=dateStr.split('-');
+  return {d:parseInt(d,10),m:parseInt(m,10),y:parseInt(y,10)};
+}
+function buildDaySelect(id,selectedDay){
+  let html='<select class="dsel day-sel" id="'+id+'"><option value="">יום</option>';
+  for(let d=1;d<=31;d++){ html+='<option value="'+d+'"'+(selectedDay===d?' selected':'')+'>'+d+'</option>'; }
+  html+='</select>';
+  return html;
+}
+function buildMonthSelect(id,selectedMonth){
+  let html='<select class="dsel month-sel" id="'+id+'"><option value="">חודש</option>';
+  HEBREW_MONTHS_SHORT.forEach((name,i)=>{
+    const m=i+1;
+    html+='<option value="'+m+'"'+(selectedMonth===m?' selected':'')+'>'+name+'</option>';
+  });
+  html+='</select>';
+  return html;
+}
+function buildYearSelect(id,selectedYear){
+  const nowY=new Date().getFullYear();
+  let html='<select class="dsel year-sel" id="'+id+'"><option value="">שנה</option>';
+  for(let y=nowY;y>=nowY-4;y--){ html+='<option value="'+y+'"'+(selectedYear===y?' selected':'')+'>'+y+'</option>'; }
+  html+='</select>';
+  return html;
+}
+function buildManualDatePicker(prefix,lastDate,onSaveCallStr){
+  const parts=parseDateParts(lastDate);
+  return '<div class="date-picker-manual">'+
+    buildDaySelect(prefix+'-day',parts.d)+
+    buildMonthSelect(prefix+'-month',parts.m)+
+    buildYearSelect(prefix+'-year',parts.y)+
+    '<button class="btn-save-date" onclick="'+onSaveCallStr+'">שמור</button>'+
+    '</div>';
+}
+function readManualDateParts(prefix){
+  const d=document.getElementById(prefix+'-day').value;
+  const m=document.getElementById(prefix+'-month').value;
+  const y=document.getElementById(prefix+'-year').value;
+  if(!d||!m||!y) return null;
+  return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+
 function computeStatus(lastDate,freq){
   if(!lastDate){
     return {status:'red',nextDate:null,daysLeft:null,label:'טרם בוצע לראשונה'};
@@ -438,6 +495,34 @@ async function loadEmpQualData(empId){
     return{...q,lastDate:rec.lastDate||'',...st};
   });
 }
+
+// ===== PUSH NOTIFICATIONS (Firebase Cloud Messaging) =====
+async function setupPushNotifications(userId){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+    console.warn('דפדפן זה לא תומך בהתראות Push');
+    return;
+  }
+  try{
+    if(!messaging) messaging=firebase.messaging();
+    const reg=await navigator.serviceWorker.register('firebase-messaging-sw.js');
+    let perm=Notification.permission;
+    if(perm==='default') perm=await Notification.requestPermission();
+    if(perm!=='granted'){ console.warn('הרשאת התראות נדחתה'); return; }
+    const token=await messaging.getToken({vapidKey:VAPID_KEY, serviceWorkerRegistration:reg});
+    if(token){
+      await db.ref('quals_tokens/'+userId).push({token,updatedAt:Date.now()});
+    }
+  }catch(e){ console.error('הרשמה להתראות נכשלה',e); }
+}
+function setupForegroundMessages(){
+  if(!messaging) return;
+  messaging.onMessage(payload=>{
+    const title=(payload.notification&&payload.notification.title)||'התראה';
+    const body=(payload.notification&&payload.notification.body)||'';
+    try{ new Notification(title,{body}); }catch(e){}
+  });
+}
+function notifyForRows(){ /* ההתראות בפועל נשלחות דרך Cloud Function מתוזמן, ראו functions/index.js */ }
 
 // ===== LOGIN =====
 async function buildLoginSelect(){
@@ -523,6 +608,8 @@ async function enterEmployee(){
   document.getElementById('header-user-name').textContent=currentUser.name;
   document.getElementById('employee-view').style.display='block';
   document.getElementById('master-view').style.display='none';
+  setupForegroundMessages();
+  await setupPushNotifications(currentUser.id);
   await renderEmployeeTable();
 }
 
@@ -535,14 +622,15 @@ window.renderEmployeeTable=async function(){
     const tr=document.createElement('tr');
     tr.className='row-'+row.status;
     const nextDisplay=row.nextDate?formatDate(row.nextDate):'—';
-    const lastDisplay=row.lastDate||'';
+    const pickerHtml=buildManualDatePicker('emp-'+row.id,row.lastDate,"saveManualDateEmployee('"+row.id+"')");
     tr.innerHTML=
       '<td data-label="#" style="color:#888;font-size:13px;">'+(i+1)+'</td>'+
       '<td data-label="שם הכשירות" style="font-weight:600;">'+row.name+'</td>'+
       '<td data-label="תדירות"><span class="freq-badge">כל '+row.freq+' ימים</span></td>'+
       '<td data-label="ביצוע אחרון">'+
-        '<input type="date" class="date-input" value="'+lastDisplay+'" onchange="onDateChange(\''+row.id+'\',this.value)">'+
-        '<button class="btn-today" onclick="setToday(\''+row.id+'\')">בוצע היום</button></td>'+
+        pickerHtml+
+        '<button class="btn-today" onclick="setToday(\''+row.id+'\')">בוצע היום</button>'+
+        '</td>'+
       '<td data-label="ביצוע הבא">'+nextDisplay+'</td>'+
       '<td data-label="סטטוס"><div class="status-cell"><div class="status-dot status-'+row.status+'"></div>'+
         '<span class="badge-days '+row.status+'">'+row.label+'</span></div></td>';
@@ -560,6 +648,7 @@ window.renderEmployeeTable=async function(){
   redBanner.textContent=r>0?('⛔ יש לך '+r+' כשירויות שפג תוקפן — נדרש לבצע אותן מחדש בהקדם.'):'';
   orangeBanner.classList.toggle('show',o>0);
   orangeBanner.textContent=o>0?('⚠️ יש לך '+o+' כשירויות שעומדות לפוג תוך 5 ימים.'):'';
+  notifyForRows(rows,null);
 };
 
 window.onDateChange=async function(qualId,val){
@@ -572,6 +661,11 @@ window.onDateChange=async function(qualId,val){
 window.setToday=async function(qualId){
   await window.onDateChange(qualId,todayStr());
 };
+window.saveManualDateEmployee=async function(qualId){
+  const dateStr=readManualDateParts('emp-'+qualId);
+  if(!dateStr){ alert('יש לבחור יום, חודש ושנה לפני השמירה'); return; }
+  await window.onDateChange(qualId,dateStr);
+};
 
 // ===== MASTER =====
 async function enterMaster(){
@@ -580,10 +674,11 @@ async function enterMaster(){
   document.getElementById('header-user-name').textContent='מנהל ראשי';
   document.getElementById('employee-view').style.display='none';
   document.getElementById('master-view').style.display='block';
+  setupForegroundMessages();
+  await setupPushNotifications('master');
   await renderMasterView();
   await buildQualEditor();
   await buildEmployeeManager();
-  await buildResetSelect();
   if(masterUnsub) masterUnsub();
   masterUnsub=fbListen('quals_data',async()=>{await renderMasterView();});
 }
@@ -595,7 +690,6 @@ window.showMasterTab=function(tab){
   if(tab==='qualifications') buildQualEditor();
   if(tab==='employees') buildEmployeeManager();
   if(tab==='dashboard') renderMasterView();
-  if(tab==='settings') buildResetSelect();
 };
 
 // ===== QUALIFICATIONS EDITOR =====
@@ -711,36 +805,6 @@ window.saveEmployeeManage=async function(){
   await renderMasterView();
 };
 
-// ===== RESET DATA (master only) =====
-async function buildResetSelect(){
-  const emps=await getEmployees();
-  const sel=document.getElementById('reset-emp-select');
-  if(!sel) return;
-  sel.innerHTML='';
-  emps.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.name;sel.appendChild(o);});
-}
-window.resetSelectedEmployee=async function(){
-  const sel=document.getElementById('reset-emp-select');
-  if(!sel||!sel.value) return;
-  const empId=sel.value;
-  const empName=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:empId;
-  if(!confirm('לאפס את כל נתוני הביצוע של "'+empName+'"? הפעולה בלתי הפיכה.')) return;
-  showLoading(true);
-  await db.ref('quals_data/'+empId).remove();
-  showLoading(false);
-  showSaveMsg('reset-msg');
-  await renderMasterView();
-};
-window.resetAllData=async function(){
-  if(!confirm('לאפס את נתוני הביצוע של כל העובדים במערכת? הפעולה בלתי הפיכה!')) return;
-  if(!confirm('אישור אחרון: כל תאריכי הביצוע שנשמרו יימחקו לצמיתות. להמשיך?')) return;
-  showLoading(true);
-  await db.ref('quals_data').remove();
-  showLoading(false);
-  showSaveMsg('reset-msg');
-  await renderMasterView();
-};
-
 // ===== MASTER SETTINGS (password) =====
 window.saveMasterPassword=async function(){
   const cur=document.getElementById('master-cur-pin').value.trim();
@@ -784,6 +848,7 @@ window.renderMasterView=async function(){
     const g=rows.filter(r=>r.status==='green').length;
     const o=rows.filter(r=>r.status==='orange').length;
     const r=rows.filter(r=>r.status==='red').length;
+    notifyForRows(rows,emp.name);
     return{emp,rows,g,o,r,total:rows.length};
   });
 
@@ -843,11 +908,13 @@ window.showDetail=async function(empId,empName){
     const tr=document.createElement('tr');
     tr.className='row-'+row.status;
     const nextDisplay=row.nextDate?formatDate(row.nextDate):'—';
+    const mstPrefix='mst-'+empId+'-'+row.id;
+    const pickerHtml=buildManualDatePicker(mstPrefix,row.lastDate,"saveManualDateMaster('"+empId+"','"+row.id+"')");
     tr.innerHTML=
       '<td style="color:#888;font-size:12px;">'+(i+1)+'</td>'+
       '<td style="font-weight:600;font-size:13px;">'+row.name+'</td>'+
       '<td><span class="freq-badge">כל '+row.freq+' ימים</span></td>'+
-      '<td><input type="date" class="date-input" style="width:130px;" value="'+row.lastDate+'" onchange="onMasterDateChange(\''+empId+'\',\''+row.id+'\',this.value)"></td>'+
+      '<td>'+pickerHtml+'</td>'+
       '<td style="font-size:12px;">'+nextDisplay+'</td>'+
       '<td><div class="status-cell"><div class="status-dot status-'+row.status+'"></div><span class="badge-days '+row.status+'">'+row.label+'</span></div></td>';
     tbody.appendChild(tr);
@@ -855,6 +922,11 @@ window.showDetail=async function(empId,empName){
   document.getElementById('detail-modal').classList.add('open');
   document.getElementById('detail-modal').dataset.empId=empId;
   document.getElementById('detail-modal').dataset.empName=empName;
+};
+window.saveManualDateMaster=async function(empId,qualId){
+  const dateStr=readManualDateParts('mst-'+empId+'-'+qualId);
+  if(!dateStr){ alert('יש לבחור יום, חודש ושנה לפני השמירה'); return; }
+  await window.onMasterDateChange(empId,qualId,dateStr);
 };
 window.onMasterDateChange=async function(empId,qualId,val){
   showLoading(true);
