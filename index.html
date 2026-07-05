@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a2e">
 <title>מערכת כשירויות עובדים</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -285,10 +286,18 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
           <div class="pin-err" id="master-pin-err"></div>
           <div class="panel-save-msg" id="master-pin-msg">הקוד עודכן בהצלחה!</div>
         </div>
-        <div class="info-box" style="margin-top:1.5rem;">
-          <b>לגבי התראות:</b> האפליקציה מציגה התראות בתוך המסך, ומפעילה גם התראות דפדפן (Push) כאשר האפליקציה פתוחה בטלפון/במחשב ואישרתם הרשאת התראות.
-          כדי לקבל התראות (למשל במייל או SMS) גם כשהאפליקציה סגורה, יש צורך בשירות שרת נוסף (כגון Firebase Cloud Functions מתוזמן) שניתן להוסיף בהמשך אם תרצו.
+      </div>
+      <div class="panel-card">
+        <h3>איפוס נתונים</h3>
+        <p class="panel-sub">איפוס תאריכי ביצוע שנשמרו — לעובד מסוים או לכל העובדים. הכשירויות עצמן (השמות והתדירויות) לא נמחקות, רק תאריכי הביצוע.</p>
+        <div class="warning-box">⚠️ הפעולה בלתי הפיכה! לאחר איפוס, הכשירויות שנבחרו יחזרו למצב "טרם בוצע לראשונה" (אדום). אין דרך לשחזר נתונים שנמחקו.</div>
+        <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;margin-bottom:1rem;">
+          <label style="font-weight:700;font-size:14px;">בחר עובד:</label>
+          <select id="reset-emp-select" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;background:white;-webkit-appearance:none;"></select>
         </div>
+        <button class="btn-primary" style="background:#e6a817;" onclick="resetSelectedEmployee()">אפס נתונים לעובד שנבחר</button>
+        <button class="btn-primary" style="background:#e53e3e;margin-right:.6rem;" onclick="resetAllData()">אפס נתונים לכל העובדים</button>
+        <div class="panel-save-msg" id="reset-msg">האיפוס בוצע!</div>
       </div>
     </div>
   </div>
@@ -311,17 +320,16 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 <script>
 
 // ============================================================
-// ⬇️  פרטי Firebase (הועתקו מהמערכת הקיימת שלכם — ניתן להשאיר
-//     כדי לחסוך הקמת פרויקט נוסף, או להחליף בפרויקט נפרד משלכם)
+// ⬇️  פרטי הפרויקט הנפרד "ntrackef" (מולאו לפי מה שכבר הוגדר ב-GitHub)
 // ============================================================
 const firebaseConfig = {
-  apiKey:            "AIzaSyDyTN8H7FwyhA9wjsEH97fwJB2TGJgEfpA",
-  authDomain:        "work-system-73906.firebaseapp.com",
-  databaseURL:       "https://work-system-73906-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:         "work-system-73906",
-  storageBucket:     "work-system-73906.firebasestorage.app",
-  messagingSenderId: "227399680422",
-  appId:             "1:227399680422:web:4911726e11a17572b40f67"
+  apiKey:            "AIzaSyA6gxbG_AnE8UOoL6i6n8JYLCQAp_Vrwo4",
+  authDomain:        "ntrackef.firebaseapp.com",
+  databaseURL:       "https://ntrackef-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "ntrackef",
+  storageBucket:     "ntrackef.firebasestorage.app",
+  messagingSenderId: "739248451672",
+  appId:             "1:739248451672:web:484984031cf9003e9dda2d"
 };
 // ============================================================
 
@@ -429,30 +437,6 @@ async function loadEmpQualData(empId){
   });
 }
 
-// ===== NOTIFICATIONS =====
-function requestNotifPermission(){
-  if('Notification' in window && Notification.permission==='default'){
-    Notification.requestPermission();
-  }
-}
-function fireNotification(title,body){
-  if('Notification' in window && Notification.permission==='granted'){
-    try{ new Notification(title,{body}); }catch(e){}
-  }
-}
-function notifyForRows(rows,ownerLabel){
-  rows.forEach(r=>{
-    if(r.status==='red'||r.status==='orange'){
-      const key=(ownerLabel||'')+'|'+r.id+'|'+r.status;
-      if(!notifiedThisSession.has(key)){
-        notifiedThisSession.add(key);
-        const title=r.status==='red'?'⛔ כשירות פגה':'⚠️ כשירות עומדת לפוג';
-        fireNotification(title,(ownerLabel?ownerLabel+' — ':'')+r.name+': '+r.label);
-      }
-    }
-  });
-}
-
 // ===== LOGIN =====
 async function buildLoginSelect(){
   const emps=await getEmployees();
@@ -537,7 +521,6 @@ async function enterEmployee(){
   document.getElementById('header-user-name').textContent=currentUser.name;
   document.getElementById('employee-view').style.display='block';
   document.getElementById('master-view').style.display='none';
-  requestNotifPermission();
   await renderEmployeeTable();
 }
 
@@ -575,7 +558,6 @@ window.renderEmployeeTable=async function(){
   redBanner.textContent=r>0?('⛔ יש לך '+r+' כשירויות שפג תוקפן — נדרש לבצע אותן מחדש בהקדם.'):'';
   orangeBanner.classList.toggle('show',o>0);
   orangeBanner.textContent=o>0?('⚠️ יש לך '+o+' כשירויות שעומדות לפוג תוך 5 ימים.'):'';
-  notifyForRows(rows,null);
 };
 
 window.onDateChange=async function(qualId,val){
@@ -596,10 +578,10 @@ async function enterMaster(){
   document.getElementById('header-user-name').textContent='מנהל ראשי';
   document.getElementById('employee-view').style.display='none';
   document.getElementById('master-view').style.display='block';
-  requestNotifPermission();
   await renderMasterView();
   await buildQualEditor();
   await buildEmployeeManager();
+  await buildResetSelect();
   if(masterUnsub) masterUnsub();
   masterUnsub=fbListen('quals_data',async()=>{await renderMasterView();});
 }
@@ -611,6 +593,7 @@ window.showMasterTab=function(tab){
   if(tab==='qualifications') buildQualEditor();
   if(tab==='employees') buildEmployeeManager();
   if(tab==='dashboard') renderMasterView();
+  if(tab==='settings') buildResetSelect();
 };
 
 // ===== QUALIFICATIONS EDITOR =====
@@ -726,6 +709,36 @@ window.saveEmployeeManage=async function(){
   await renderMasterView();
 };
 
+// ===== RESET DATA (master only) =====
+async function buildResetSelect(){
+  const emps=await getEmployees();
+  const sel=document.getElementById('reset-emp-select');
+  if(!sel) return;
+  sel.innerHTML='';
+  emps.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.name;sel.appendChild(o);});
+}
+window.resetSelectedEmployee=async function(){
+  const sel=document.getElementById('reset-emp-select');
+  if(!sel||!sel.value) return;
+  const empId=sel.value;
+  const empName=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:empId;
+  if(!confirm('לאפס את כל נתוני הביצוע של "'+empName+'"? הפעולה בלתי הפיכה.')) return;
+  showLoading(true);
+  await db.ref('quals_data/'+empId).remove();
+  showLoading(false);
+  showSaveMsg('reset-msg');
+  await renderMasterView();
+};
+window.resetAllData=async function(){
+  if(!confirm('לאפס את נתוני הביצוע של כל העובדים במערכת? הפעולה בלתי הפיכה!')) return;
+  if(!confirm('אישור אחרון: כל תאריכי הביצוע שנשמרו יימחקו לצמיתות. להמשיך?')) return;
+  showLoading(true);
+  await db.ref('quals_data').remove();
+  showLoading(false);
+  showSaveMsg('reset-msg');
+  await renderMasterView();
+};
+
 // ===== MASTER SETTINGS (password) =====
 window.saveMasterPassword=async function(){
   const cur=document.getElementById('master-cur-pin').value.trim();
@@ -769,7 +782,6 @@ window.renderMasterView=async function(){
     const g=rows.filter(r=>r.status==='green').length;
     const o=rows.filter(r=>r.status==='orange').length;
     const r=rows.filter(r=>r.status==='red').length;
-    notifyForRows(rows,emp.name);
     return{emp,rows,g,o,r,total:rows.length};
   });
 
