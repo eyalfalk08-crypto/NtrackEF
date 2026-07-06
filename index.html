@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-<meta charset="UTF-8">  
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a1a2e">
@@ -78,6 +78,10 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .dsel.month-sel{width:64px;}
 .dsel.year-sel{width:66px;}
 .btn-save-date{background:#1a1a2e;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.assign-list{display:flex;flex-direction:column;gap:2px;max-height:240px;overflow-y:auto;border:1.5px solid #eee;border-radius:10px;padding:.6rem;margin-bottom:.8rem;}
+.assign-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:6px 8px;border-radius:6px;cursor:pointer;}
+.assign-row:hover{background:#f8f9fa;}
+.assign-row input[type=checkbox]{width:18px;height:18px;accent-color:#1a1a2e;cursor:pointer;flex-shrink:0;}
 .freq-badge{font-size:11px;color:#888;background:#f5f5f5;padding:3px 8px;border-radius:8px;white-space:nowrap;}
 .next-badge{display:inline-block;font-size:12px;font-weight:700;}
 .badge-days{font-size:11px;font-weight:700;padding:2px 7px;border-radius:8px;margin-right:4px;}
@@ -224,6 +228,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
     <div class="master-tabs">
       <button class="master-tab active" onclick="showMasterTab('dashboard')">לוח בקרה</button>
       <button class="master-tab" onclick="showMasterTab('qualifications')">ניהול כשירויות</button>
+      <button class="master-tab" onclick="showMasterTab('assignments')">שיוך כשירויות</button>
       <button class="master-tab" onclick="showMasterTab('employees')">ניהול עובדים</button>
       <button class="master-tab" onclick="showMasterTab('settings')">הגדרות מנהל</button>
     </div>
@@ -261,6 +266,42 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
         <button class="btn-add-dashed" onclick="addQual()">+ הוסף כשירות</button>
         <button class="btn-primary" onclick="saveQuals()">שמור כשירויות</button>
         <div class="panel-save-msg" id="quals-save-msg">נשמר!</div>
+      </div>
+    </div>
+
+    <!-- ASSIGNMENTS -->
+    <div id="assignments-panel" class="panel">
+      <div class="panel-card">
+        <h3>שיוך כשירויות לעובדים</h3>
+        <p class="panel-sub">ברירת המחדל: עובד רואה את כל הכשירויות. כאן אפשר להגדיר לעובד ספציפי, או לכמה עובדים בבת אחת, אילו כשירויות בדיוק יופיעו אצלם.</p>
+        <div class="warning-box">שינוי שיוך לא מוחק שום תאריך ביצוע שכבר נשמר — הוא רק קובע אילו כשירויות מוצגות לעובד.</div>
+
+        <h3 style="font-size:13px;margin-top:1rem;margin-bottom:.5rem;">1. בחרו עובד אחד או כמה עובדים</h3>
+        <div style="margin-bottom:.5rem;display:flex;gap:8px;">
+          <button class="btn-today" onclick="selectAllAssignRows('emp-assign-chk')">בחר הכל</button>
+          <button class="btn-today" onclick="clearAllAssignRows('emp-assign-chk')">נקה בחירה</button>
+        </div>
+        <div id="assign-emp-list" class="assign-list"></div>
+
+        <h3 style="font-size:13px;margin-top:1rem;margin-bottom:.5rem;">2. בחרו אילו כשירויות יופיעו אצלם</h3>
+        <div style="margin-bottom:.5rem;display:flex;gap:8px;">
+          <button class="btn-today" onclick="selectAllAssignRows('qual-assign-chk')">בחר הכל</button>
+          <button class="btn-today" onclick="clearAllAssignRows('qual-assign-chk')">נקה בחירה</button>
+        </div>
+        <div id="assign-qual-list" class="assign-list"></div>
+
+        <button class="btn-primary" onclick="applyAssignment()">החל שיוך על העובדים שנבחרו</button>
+        <div class="panel-save-msg" id="assign-save-msg">השיוך עודכן!</div>
+      </div>
+
+      <div class="employees-table-card">
+        <h3>סיכום שיוך נוכחי</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>עובד</th><th>כשירויות משויכות</th><th>עריכה</th></tr></thead>
+            <tbody id="assign-summary-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -380,7 +421,7 @@ const DEFAULT_QUALS = [
 let currentUser = null;
 let barChartInst=null, pieChartInst=null;
 let masterUnsub=null;
-let cachedEmployees=null, cachedQuals=null, cachedMaster=null;
+let cachedEmployees=null, cachedQuals=null, cachedMaster=null, cachedAssignments=null;
 let notifiedThisSession=new Set();
 
 // ===== FIREBASE HELPERS =====
@@ -413,6 +454,11 @@ async function getMaster(){
   if(cachedMaster) return cachedMaster;
   cachedMaster=await fbGet('quals_config/master')||DEFAULT_MASTER;
   return cachedMaster;
+}
+async function getAssignments(){
+  if(cachedAssignments) return cachedAssignments;
+  cachedAssignments=await fbGet('quals_config/assignments')||{};
+  return cachedAssignments;
 }
 function dataKey(empId){return 'quals_data/'+empId;}
 
@@ -503,8 +549,11 @@ function sortByUrgency(rows){
 
 async function loadEmpQualData(empId){
   const quals=await getQuals();
+  const assignments=await getAssignments();
+  const empAssignment=assignments[empId];
+  const applicableQuals=empAssignment?quals.filter(q=>empAssignment[q.id]):quals;
   const saved=await fbGet(dataKey(empId))||{};
-  return quals.map(q=>{
+  return applicableQuals.map(q=>{
     const rec=saved[q.id]||{};
     const st=computeStatus(rec.lastDate||'',q.freq);
     return{...q,lastDate:rec.lastDate||'',...st};
@@ -608,7 +657,7 @@ var _t=setInterval(function(){
 window.doLogout=function(){
   try{ if(masterUnsub){masterUnsub();} }catch(e){ console.error('שגיאה בניתוק מאזין:',e); }
   masterUnsub=null;
-  cachedEmployees=null;cachedQuals=null;cachedMaster=null;
+  cachedEmployees=null;cachedQuals=null;cachedMaster=null;cachedAssignments=null;
   currentUser=null;
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
@@ -702,16 +751,18 @@ async function enterMaster(){
   await setupPushNotifications('master');
   await renderMasterView();
   await buildQualEditor();
+  await buildAssignmentEditor();
   await buildEmployeeManager();
   if(masterUnsub) masterUnsub();
   masterUnsub=fbListen('quals_data',async()=>{await renderMasterView();});
 }
 
 window.showMasterTab=function(tab){
-  const tabs=['dashboard','qualifications','employees','settings'];
+  const tabs=['dashboard','qualifications','assignments','employees','settings'];
   document.querySelectorAll('.master-tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===tab));
   tabs.forEach(p=>document.getElementById(p+'-panel')?(document.getElementById(p+'-panel').style.display=p===tab?'block':'none'):null);
   if(tab==='qualifications') buildQualEditor();
+  if(tab==='assignments') buildAssignmentEditor();
   if(tab==='employees') buildEmployeeManager();
   if(tab==='dashboard') renderMasterView();
 };
@@ -769,7 +820,95 @@ window.saveQuals=async function(){
   showLoading(false);
   showSaveMsg('quals-save-msg');
   await renderMasterView();
+  await buildAssignmentEditor();
 };
+
+// ===== QUALIFICATION ASSIGNMENT (which quals go to which employees) =====
+let _assignEmployeesCache=null, _assignQualsCache=null;
+async function buildAssignmentEditor(){
+  const empListEl=document.getElementById('assign-emp-list');
+  if(!empListEl) return; // panel not in DOM yet on this view
+  const emps=await getEmployees();
+  const quals=await getQuals();
+  _assignEmployeesCache=emps;_assignQualsCache=quals;
+
+  empListEl.innerHTML='';
+  emps.forEach(e=>{
+    const row=document.createElement('label');row.className='assign-row';
+    row.innerHTML='<input type="checkbox" class="emp-assign-chk" value="'+e.id+'"><span>'+e.name+'</span>';
+    empListEl.appendChild(row);
+  });
+
+  const qualListEl=document.getElementById('assign-qual-list');
+  qualListEl.innerHTML='';
+  quals.forEach(q=>{
+    const row=document.createElement('label');row.className='assign-row';
+    row.innerHTML='<input type="checkbox" class="qual-assign-chk" value="'+q.id+'"><span>'+q.name+'</span>';
+    qualListEl.appendChild(row);
+  });
+
+  await renderAssignmentSummary();
+}
+
+window.selectAllAssignRows=function(cls){
+  document.querySelectorAll('.'+cls).forEach(c=>{c.checked=true;});
+};
+window.clearAllAssignRows=function(cls){
+  document.querySelectorAll('.'+cls).forEach(c=>{c.checked=false;});
+};
+
+window.applyAssignment=async function(){
+  const empIds=Array.prototype.map.call(document.querySelectorAll('.emp-assign-chk:checked'),c=>c.value);
+  const qualIds=Array.prototype.map.call(document.querySelectorAll('.qual-assign-chk:checked'),c=>c.value);
+  if(empIds.length===0){ alert('יש לבחור לפחות עובד אחד'); return; }
+  if(qualIds.length===0){
+    if(!confirm('לא נבחרה אף כשירות — העובדים שנבחרו לא יראו שום כשירות במסך שלהם. להמשיך?')) return;
+  }
+  const qualMap={};
+  qualIds.forEach(id=>{qualMap[id]=true;});
+  const patch={};
+  empIds.forEach(empId=>{ patch[empId]=qualMap; });
+  showLoading(true);
+  await db.ref('quals_config/assignments').update(patch);
+  cachedAssignments=null;
+  showLoading(false);
+  showSaveMsg('assign-save-msg');
+  await renderAssignmentSummary();
+  await renderMasterView();
+};
+
+window.editAssignmentForEmployee=async function(empId){
+  document.querySelectorAll('.emp-assign-chk').forEach(c=>{c.checked=(c.value===empId);});
+  const assignments=await getAssignments();
+  const empAssignment=assignments[empId];
+  document.querySelectorAll('.qual-assign-chk').forEach(c=>{
+    c.checked = empAssignment ? !!empAssignment[c.value] : true;
+  });
+  const empListEl=document.getElementById('assign-emp-list');
+  if(empListEl) empListEl.scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+async function renderAssignmentSummary(){
+  const tbody=document.getElementById('assign-summary-body');
+  if(!tbody) return;
+  const emps=_assignEmployeesCache||await getEmployees();
+  const quals=_assignQualsCache||await getQuals();
+  const assignments=await getAssignments();
+  tbody.innerHTML='';
+  emps.forEach(emp=>{
+    const empAssignment=assignments[emp.id];
+    const applicable=empAssignment?quals.filter(q=>empAssignment[q.id]):quals;
+    const label=empAssignment
+      ?(applicable.length+' מתוך '+quals.length+(applicable.length?' — '+applicable.map(q=>q.name).join(', '):''))
+      :'כל הכשירויות (ברירת מחדל)';
+    const tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td data-label="עובד" style="font-weight:700;">'+emp.name+'</td>'+
+      '<td data-label="כשירויות משויכות" style="font-size:12px;">'+label+'</td>'+
+      '<td data-label="עריכה"><button class="view-btn" onclick="editAssignmentForEmployee(\''+emp.id+'\')">ערוך</button></td>';
+    tbody.appendChild(tr);
+  });
+}
 
 // ===== EMPLOYEES MANAGER =====
 let _workingEmps=[];
@@ -827,6 +966,7 @@ window.saveEmployeeManage=async function(){
   buildLoginSelect();
   showSaveMsg('emp-manage-msg');
   await renderMasterView();
+  await buildAssignmentEditor();
 };
 
 // ===== MASTER SETTINGS (password) =====
@@ -871,11 +1011,14 @@ window.resetAllSystemData=async function(){
 window.renderMasterView=async function(){
   const emps=await getEmployees();
   const quals=await getQuals();
+  const assignments=await getAssignments();
   const allData=await fbGet('quals_data')||{};
 
   const empData=emps.map(emp=>{
     const saved=allData[emp.id]||{};
-    const rows=quals.map(q=>{
+    const empAssignment=assignments[emp.id];
+    const applicableQuals=empAssignment?quals.filter(q=>empAssignment[q.id]):quals;
+    const rows=applicableQuals.map(q=>{
       const rec=saved[q.id]||{};
       const st=computeStatus(rec.lastDate||'',q.freq);
       return{...q,lastDate:rec.lastDate||'',...st};
@@ -898,6 +1041,7 @@ window.renderMasterView=async function(){
 
   // Bar chart — stacked per employee
   const labels=empData.map(d=>d.emp.name);
+  const maxTotal=Math.max(1,...empData.map(d=>d.total));
   if(barChartInst) barChartInst.destroy();
   barChartInst=new Chart(document.getElementById('barChart').getContext('2d'),{
     type:'bar',
@@ -907,7 +1051,7 @@ window.renderMasterView=async function(){
       {label:'פג תוקף',data:empData.map(d=>d.r),backgroundColor:'#e53e3e',borderRadius:3},
     ]},
     options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
-      scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,min:0,max:quals.length,ticks:{stepSize:1,font:{size:10}}}}}
+      scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,min:0,max:maxTotal,ticks:{stepSize:1,font:{size:10}}}}}
   });
 
   // Pie — overall distribution
