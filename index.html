@@ -386,7 +386,12 @@ let notifiedThisSession=new Set();
 // ===== FIREBASE HELPERS =====
 async function fbGet(path){const s=await db.ref(path).once("value");return s.exists()?s.val():null;}
 async function fbSet(path,val){await db.ref(path).set(val);}
-function fbListen(path,cb){return db.ref(path).on("value",s=>cb(s.exists()?s.val():null));}
+function fbListen(path,cb){
+  const ref=db.ref(path);
+  const listener=s=>cb(s.exists()?s.val():null);
+  ref.on("value",listener);
+  return function(){ ref.off("value",listener); };
+}
 
 function showLoading(v){document.getElementById('loading-overlay').style.display=v?'flex':'none';}
 function showFirebaseError(){
@@ -601,7 +606,8 @@ var _t=setInterval(function(){
 },200);
 
 window.doLogout=function(){
-  if(masterUnsub){masterUnsub();masterUnsub=null;}
+  try{ if(masterUnsub){masterUnsub();} }catch(e){ console.error('שגיאה בניתוק מאזין:',e); }
+  masterUnsub=null;
   cachedEmployees=null;cachedQuals=null;cachedMaster=null;
   currentUser=null;
   document.getElementById('app').style.display='none';
