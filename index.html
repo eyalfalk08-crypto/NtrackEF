@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a1a2e">
 <link rel="manifest" href="manifest.json">
-<title>מערכת כשירויות עובדים</title>   
+<title>מערכת כשירויות עובדים</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -70,6 +70,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .date-input{border:1.5px solid #e0e0e0;border-radius:8px;padding:7px 9px;font-size:13px;outline:none;width:140px;cursor:pointer;-webkit-appearance:none;}
 .date-input:focus{border-color:#1a1a2e;}
 .btn-today{background:#eef2ff;color:#1a1a2e;border:none;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:4px;margin-top:6px;}
+.btn-reset-qual{background:#fee2e2;color:#991b1b;border:none;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:4px;margin-top:6px;}
 .date-cell{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .date-picker-manual{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px;}
 .dsel{padding:6px 4px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;background:white;-webkit-appearance:none;cursor:pointer;}
@@ -303,6 +304,13 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
           כדי שזה יעבוד: יש לפרוס את הקבצים שבתיקיית <code>functions/</code> ואת <code>firebase-messaging-sw.js</code> (ראו קובץ ההנחיות DEPLOY_INSTRUCTIONS.md), ולאשר הרשאת התראות בדפדפן/בטלפון בעת ההתחברות.
         </div>
         <button class="btn-primary" onclick="setupPushNotifications(currentUser?currentUser.id:'master')" style="margin-top:.8rem;">הפעל / רענן התראות בטלפון זה</button>
+      </div>
+      <div class="panel-card">
+        <h3>איפוס כלל הנתונים במערכת</h3>
+        <p class="panel-sub">מוחק את כל תאריכי הביצוע שנשמרו עבור כל העובדים, על כל הכשירויות. שמות הכשירויות, התדירויות ורשימת העובדים לא נמחקים — רק המילוי.</p>
+        <div class="warning-box">⚠️ הפעולה הזו משפיעה על <b>כל</b> העובדים במערכת ובלתי הפיכה! כל הכשירויות של כולם יחזרו למצב "טרם בוצע לראשונה" (אדום). אין דרך לשחזר.</div>
+        <button class="btn-primary" style="background:#e53e3e;" onclick="resetAllSystemData()">אפס את כל הנתונים במערכת</button>
+        <div class="panel-save-msg" id="reset-all-msg">האיפוס בוצע!</div>
       </div>
     </div>
   </div>
@@ -632,6 +640,7 @@ window.renderEmployeeTable=async function(){
       '<td data-label="ביצוע אחרון">'+
         pickerHtml+
         '<button class="btn-today" onclick="setToday(\''+row.id+'\')">בוצע היום</button>'+
+        '<button class="btn-reset-qual" onclick="resetOwnQual(\''+row.id+'\')">אפס כשירות</button>'+
         '</td>'+
       '<td data-label="ביצוע הבא">'+nextDisplay+'</td>'+
       '<td data-label="סטטוס"><div class="status-cell"><div class="status-dot status-'+row.status+'"></div>'+
@@ -662,6 +671,13 @@ window.onDateChange=async function(qualId,val){
 };
 window.setToday=async function(qualId){
   await window.onDateChange(qualId,todayStr());
+};
+window.resetOwnQual=async function(qualId){
+  const quals=await getQuals();
+  const q=quals.find(x=>x.id===qualId);
+  const name=q?q.name:'הכשירות';
+  if(!confirm('לאפס את התאריך של "'+name+'"? היא תחזור למצב "טרם בוצע לראשונה".')) return;
+  await window.onDateChange(qualId,'');
 };
 window.saveManualDateEmployee=async function(qualId){
   const dateStr=readManualDateParts('emp-'+qualId);
@@ -833,6 +849,17 @@ function showSaveMsg(id){
   if(!msg) return;
   msg.classList.add('show');setTimeout(()=>msg.classList.remove('show'),2500);
 }
+
+// ===== FULL SYSTEM DATA RESET (master only) =====
+window.resetAllSystemData=async function(){
+  if(!confirm('לאפס את כל תאריכי הביצוע של כל העובדים במערכת? הפעולה בלתי הפיכה!')) return;
+  if(!confirm('אישור אחרון: כל המילוי של כל הכשירויות אצל כל העובדים יימחק לצמיתות. להמשיך?')) return;
+  showLoading(true);
+  await db.ref('quals_data').remove();
+  showLoading(false);
+  showSaveMsg('reset-all-msg');
+  await renderMasterView();
+};
 
 // ===== MASTER DASHBOARD =====
 window.renderMasterView=async function(){
