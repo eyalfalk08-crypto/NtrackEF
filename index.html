@@ -4,44 +4,42 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1a1a2e">
-<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4c1d95">
 <title>מערכת כשירויות עובדים</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#1a1a2e;min-height:100vh;direction:rtl;-webkit-font-smoothing:antialiased;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#4c1d95;min-height:100vh;direction:rtl;-webkit-font-smoothing:antialiased;}
 #loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.88);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;}
-.spinner{width:40px;height:40px;border:4px solid #eee;border-top-color:#1a1a2e;border-radius:50%;animation:spin .8s linear infinite;}
+.spinner{width:40px;height:40px;border:4px solid #eee;border-top-color:#4c1d95;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:14px;color:#666;font-weight:600;}
 #firebase-error{position:fixed;inset:0;background:white;z-index:998;display:none;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;gap:1rem;}
 #firebase-error h2{font-size:20px;color:#e53e3e;}
 #firebase-error p{font-size:14px;color:#666;max-width:460px;line-height:1.7;}
 #firebase-error code{background:#f5f5f5;padding:2px 8px;border-radius:4px;font-size:13px;}
-#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:1rem;}
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4c1d95 0%,#5b21b6 50%,#6d28d9 100%);padding:1rem;}
 .login-card{background:white;border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.35);}
 .login-logo{text-align:center;margin-bottom:2rem;}
-.login-logo .icon{width:64px;height:64px;background:#1a1a2e;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;}
+.login-logo .icon{width:64px;height:64px;background:#4c1d95;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;}
 .login-logo .icon svg{width:32px;height:32px;fill:white;}
-.login-logo h1{font-size:22px;font-weight:700;color:#1a1a2e;}
+.login-logo h1{font-size:22px;font-weight:700;color:#4c1d95;}
 .login-logo p{font-size:13px;color:#888;margin-top:4px;}
 .form-group{margin-bottom:1.2rem;}
 .form-group label{display:block;font-size:13px;font-weight:600;color:#555;margin-bottom:6px;}
 .form-group select,.form-group input{width:100%;padding:12px 14px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:15px;outline:none;transition:border .2s;background:white;direction:rtl;-webkit-appearance:none;}
-.form-group select:focus,.form-group input:focus{border-color:#1a1a2e;}
-.btn-login{width:100%;padding:14px;background:#1a1a2e;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:.5rem;}
-.btn-login:active{background:#0a0a1a;}
+.form-group select:focus,.form-group input:focus{border-color:#4c1d95;}
+.btn-login{width:100%;padding:14px;background:#4c1d95;color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:.5rem;}
+.btn-login:active{background:#3b0764;}
 .error-msg{color:#e53e3e;font-size:13px;text-align:center;margin-top:8px;min-height:20px;}
 .copyright-login{text-align:center;font-size:11px;color:#aaa;margin-top:1.2rem;padding-top:1rem;border-top:1px solid #eee;}
 .app-copyright{text-align:center;font-size:11px;color:#999;padding:1.5rem 1rem 2rem;margin-top:1rem;}
 #app{display:none;min-height:100vh;}
-.header{background:#1a1a2e;color:white;padding:0 1rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header{background:#4c1d95;color:white;padding:0 1rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .header-title{font-size:16px;font-weight:700;flex:1;}
 .header-user{font-size:12px;color:#aaa;margin-left:.5rem;}
 .btn-logout{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:white;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;white-space:nowrap;}
@@ -71,8 +69,8 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .status-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 .status-green{background:#38a169;}.status-orange{background:#e6a817;}.status-red{background:#e53e3e;}
 .date-input{border:1.5px solid #e0e0e0;border-radius:8px;padding:7px 9px;font-size:13px;outline:none;width:140px;cursor:pointer;-webkit-appearance:none;}
-.date-input:focus{border-color:#1a1a2e;}
-.btn-today{background:#eef2ff;color:#1a1a2e;border:none;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:4px;margin-top:6px;}
+.date-input:focus{border-color:#4c1d95;}
+.btn-today{background:#f3e8ff;color:#4c1d95;border:none;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;margin-right:4px;margin-top:6px;}
 .date-cell{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .date-picker-manual{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:2px;}
 .dsel{padding:6px 4px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:12px;outline:none;background:white;-webkit-appearance:none;cursor:pointer;}
@@ -82,12 +80,12 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .dsel.type-sel{width:74px;font-weight:700;}
 .type-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
 .type-label{font-size:11px;color:#888;font-weight:700;white-space:nowrap;}
-.type-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;background:#eef2ff;color:#1a1a2e;white-space:nowrap;}
-.btn-save-date{background:#1a1a2e;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.type-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;background:#f3e8ff;color:#4c1d95;white-space:nowrap;}
+.btn-save-date{background:#4c1d95;color:white;border:none;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .assign-list{display:flex;flex-direction:column;gap:2px;max-height:240px;overflow-y:auto;border:1.5px solid #eee;border-radius:10px;padding:.6rem;margin-bottom:.8rem;}
 .assign-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:6px 8px;border-radius:6px;cursor:pointer;}
 .assign-row:hover{background:#f8f9fa;}
-.assign-row input[type=checkbox]{width:18px;height:18px;accent-color:#1a1a2e;cursor:pointer;flex-shrink:0;}
+.assign-row input[type=checkbox]{width:18px;height:18px;accent-color:#4c1d95;cursor:pointer;flex-shrink:0;}
 .hist-box{display:none;margin-top:6px;background:#f8f9fa;border:1px solid #eee;border-radius:8px;padding:8px 10px;font-size:11px;color:#444;max-width:220px;}
 .hist-box.open{display:block;}
 .hist-box ul{margin:0;padding-right:16px;}
@@ -95,6 +93,9 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .hist-del-btn{background:#fee2e2;color:#991b1b;border:none;width:18px;height:18px;border-radius:5px;cursor:pointer;font-size:12px;line-height:1;flex-shrink:0;}
 .hist-actions{display:flex;align-items:center;gap:5px;flex-shrink:0;}
 .hist-restore-btn{background:#dcfce7;color:#166534;border:none;padding:2px 7px;border-radius:5px;cursor:pointer;font-size:10px;font-weight:700;white-space:nowrap;}
+.row-manager{background:#f3f4f6;}
+.status-manager{background:#9ca3af;}
+.badge-days.manager{background:#e5e7eb;color:#374151;}
 .hist-box li{margin-bottom:2px;}
 .freq-badge{font-size:11px;color:#888;background:#f5f5f5;padding:3px 8px;border-radius:8px;white-space:nowrap;}
 .next-badge{display:inline-block;font-size:12px;font-weight:700;}
@@ -104,9 +105,6 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .badge-days.red{background:#fee2e2;color:#991b1b;}
 .badge-days.expired{background:#ff1a1a;color:#ffffff;font-weight:800;}
 .row-expired{background:#ffd6d6;}
-.row-manager{background:#f3f4f6;}
-.status-manager{background:#9ca3af;}
-.badge-days.manager{background:#e5e7eb;color:#374151;}
 .status-expired{background:#ff1a1a;animation:pulseRedDot 1.5s infinite;}
 @keyframes pulseRedDot{
   0%,100%{box-shadow:0 0 0 0 rgba(255,26,26,.55);}
@@ -115,20 +113,22 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 #master-view{padding:1rem;max-width:1200px;margin:0 auto;}
 .master-tabs{display:flex;gap:6px;margin-bottom:1.2rem;overflow-x:auto;padding-bottom:2px;}
 .master-tab{padding:9px 16px;border-radius:8px;border:1.5px solid #e0e0e0;background:white;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
-.master-tab.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
+.master-tab.active{background:#4c1d95;color:white;border-color:#4c1d95;}
 .hist-mode-btn{padding:9px 16px;border-radius:8px;border:1.5px solid #e0e0e0;background:white;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
-.hist-mode-btn.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
+.hist-mode-btn.active{background:#4c1d95;color:white;border-color:#4c1d95;}
 .master-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin-bottom:1.2rem;}
 @media(min-width:600px){.master-stats{grid-template-columns:repeat(5,1fr);}}
 .stat-card{background:white;border-radius:12px;padding:1rem 1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .stat-label{font-size:11px;color:#888;font-weight:700;}
-.stat-value{font-size:22px;font-weight:800;color:#1a1a2e;margin-top:2px;}
+.stat-value{font-size:22px;font-weight:800;color:#4c1d95;margin-top:2px;}
 .stat-sub{font-size:11px;color:#aaa;margin-top:1px;}
 .stat-green .stat-value{color:#38a169;}
 .stat-orange .stat-value{color:#e6a817;}
 .stat-red .stat-value{color:#e53e3e;}
 .stat-unavail{border:2px solid #7c3aed;}
 .stat-unavail .stat-value{color:#7c3aed;}
+.stat-unavail-breakdown{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px;}
+.stat-unavail-breakdown span{font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;color:#fff;white-space:nowrap;}
 .master-grid{display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1.2rem;}
 @media(min-width:700px){.master-grid{grid-template-columns:1fr 1fr;}}
 .chart-card{background:white;border-radius:12px;padding:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.06);}
@@ -149,39 +149,43 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .msg-dismiss{background:#f3f4f6;color:#666;border:none;width:22px;height:22px;border-radius:50%;font-size:13px;cursor:pointer;flex-shrink:0;}
 .recurring-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:#f3e8ff;color:#6b21a8;}
 .available-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:#f3f4f6;color:#888;white-space:nowrap;}
-.view-btn{background:#eef2ff;color:#1a1a2e;border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
-.view-btn:active{background:#dde6ff;}
+.view-btn{background:#f3e8ff;color:#4c1d95;border:none;padding:7px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;}
+.view-btn:active{background:#ede9fe;}
 .panel{display:none;}
 .panel-card{background:white;border-radius:12px;padding:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:1rem;}
 .panel-card h3{font-size:16px;font-weight:700;margin-bottom:.4rem;}
 .panel-card .panel-sub{font-size:13px;color:#888;margin-bottom:1.2rem;}
 .warning-box{background:#fffbeb;border:1px solid #f6d860;border-radius:10px;padding:.9rem 1.1rem;margin-bottom:1.2rem;font-size:13px;color:#7d5d00;}
-.info-box{background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:.9rem 1.1rem;margin-bottom:1.2rem;font-size:13px;color:#312e81;line-height:1.6;}
+.info-box{background:#f3e8ff;border:1px solid #ddd6fe;border-radius:10px;padding:.9rem 1.1rem;margin-bottom:1.2rem;font-size:13px;color:#4c1d95;line-height:1.6;}
 .qual-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;border:1.5px solid #eee;border-radius:10px;background:#fafafa;flex-wrap:wrap;}
-.qual-num{width:26px;height:26px;background:#1a1a2e;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.qual-num{width:26px;height:26px;background:#4c1d95;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
 .qual-name{flex:2;min-width:140px;padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;direction:rtl;}
-.qual-name:focus{border-color:#1a1a2e;}
+.qual-name:focus{border-color:#4c1d95;}
 .qual-freq{width:90px;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;direction:ltr;text-align:center;}
-.qual-freq:focus{border-color:#1a1a2e;}
+.qual-freq:focus{border-color:#4c1d95;}
 .qual-label{font-size:11px;color:#999;white-space:nowrap;}
 .emp-manage-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:10px 12px;border:1.5px solid #eee;border-radius:10px;background:#fafafa;flex-wrap:wrap;}
-.emp-manage-num{width:26px;height:26px;background:#1a1a2e;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.emp-manage-num{width:26px;height:26px;background:#4c1d95;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
 .emp-manage-name{flex:2;min-width:100px;padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;direction:rtl;}
-.emp-manage-name:focus{border-color:#1a1a2e;}
+.emp-manage-name:focus{border-color:#4c1d95;}
 .emp-manage-pin{width:90px;padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;direction:ltr;text-align:center;letter-spacing:2px;}
-.emp-manage-pin:focus{border-color:#1a1a2e;}
+.emp-manage-pin:focus{border-color:#4c1d95;}
 .emp-manage-label{font-size:11px;color:#999;white-space:nowrap;}
+.emp-team-select{padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;background:white;min-width:110px;}
+.team-badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:#f3e8ff;color:#4c1d95;white-space:nowrap;}
+.team-badge.none{background:#f3f4f6;color:#888;}
+.team-filter-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap;}
 .btn-del-sec{background:#fee2e2;color:#991b1b;border:none;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .btn-del-emp{background:#fee2e2;color:#991b1b;border:none;width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:14px;flex-shrink:0;}
 .btn-add-dashed{background:#f0fff4;color:#166534;border:1.5px dashed #38a169;border-radius:9px;padding:9px;width:100%;cursor:pointer;font-size:13px;font-weight:700;margin-top:.5rem;margin-bottom:.3rem;}
-.btn-primary{background:#1a1a2e;color:white;border:none;padding:11px 26px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-top:1rem;}
-.btn-primary:active{background:#0a0a1a;}
+.btn-primary{background:#4c1d95;color:white;border:none;padding:11px 26px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-top:1rem;}
+.btn-primary:active{background:#3b0764;}
 .panel-save-msg{color:#38a169;font-size:13px;margin-top:8px;opacity:0;transition:opacity .3s;min-height:18px;}
 .panel-save-msg.show{opacity:1;}
 .pin-input-group{display:flex;flex-direction:column;gap:.8rem;max-width:340px;}
 .pin-input-group label{font-size:13px;font-weight:600;color:#555;margin-bottom:3px;display:block;}
 .pin-field{padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:9px;font-size:15px;outline:none;direction:ltr;letter-spacing:3px;text-align:center;width:100%;}
-.pin-field:focus{border-color:#1a1a2e;}
+.pin-field:focus{border-color:#4c1d95;}
 .pin-err{color:#e53e3e;font-size:12px;min-height:16px;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.open{display:flex;}
@@ -217,7 +221,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
   <h2>בעיית חיבור</h2>
   <p>לא הצלחנו להתחבר לשרת. זה קורה לרוב כשהחיבור לאינטרנט איטי או לא יציב.</p>
   <p style="font-size:13px;color:#999;">בדקו את חיבור האינטרנט ונסו שוב. אם הבעיה חוזרת שוב ושוב — ודאו שמופעל <b>Anonymous Authentication</b> תחת Firebase Console ← Authentication ← Sign-in method.</p>
-  <button onclick="location.reload()" style="background:#1a1a2e;color:white;border:none;padding:13px 34px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:.5rem;">נסה שוב</button>
+  <button onclick="location.reload()" style="background:#4c1d95;color:white;border:none;padding:13px 34px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:.5rem;">נסה שוב</button>
 </div>
 
 <div id="login-screen" style="display:none;">
@@ -291,12 +295,16 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 
     <!-- DASHBOARD -->
     <div id="dashboard-panel">
+      <div class="team-filter-row">
+        <label style="font-weight:700;font-size:14px;">סנן לפי צוות:</label>
+        <select id="dash-team-filter" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;" onchange="renderMasterView()"></select>
+      </div>
       <div class="master-stats">
         <div class="stat-card"><div class="stat-label">עובדים</div><div class="stat-value" id="stat-employees">0</div><div class="stat-sub">פעילים</div></div>
         <div class="stat-card stat-green"><div class="stat-label">בתוקף</div><div class="stat-value" id="stat-green">0</div><div class="stat-sub">כשירויות</div></div>
         <div class="stat-card stat-orange"><div class="stat-label">מתקרב לפקיעה</div><div class="stat-value" id="stat-orange">0</div><div class="stat-sub">כשירויות</div></div>
         <div class="stat-card stat-red"><div class="stat-label">פג תוקף</div><div class="stat-value" id="stat-red">0</div><div class="stat-sub">כשירויות</div></div>
-        <div class="stat-card stat-unavail"><div class="stat-label">לא זמין</div><div class="stat-value" id="stat-unavail-emps">0</div><div class="stat-sub"><span id="stat-unavail-quals">0</span> כשירויות</div></div>
+        <div class="stat-card stat-unavail"><div class="stat-label">לא זמין</div><div class="stat-value" id="stat-unavail-emps">0</div><div class="stat-sub"><span id="stat-unavail-quals">0</span> כשירויות</div><div class="stat-unavail-breakdown" id="stat-unavail-breakdown"></div></div>
       </div>
       <div class="master-grid">
         <div class="chart-card"><h3>סטטוס כשירויות לפי עובד</h3><div id="barChart-container" style="position:relative;height:220px;width:100%;"><canvas id="barChart"></canvas></div></div>
@@ -306,7 +314,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
         <h3>סיכום עובדים</h3>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>עובד</th><th>זמינות</th><th>בתוקף</th><th>מתקרב</th><th>פג תוקף</th><th>פרטים</th></tr></thead>
+            <thead><tr><th>עובד</th><th>צוות</th><th>זמינות</th><th>בתוקף</th><th>מתקרב</th><th>פג תוקף</th><th>פרטים</th></tr></thead>
             <tbody id="master-table-body"></tbody>
           </table>
         </div>
@@ -379,6 +387,8 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
           <select id="hist-month" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;"></select>
           <label style="font-weight:700;font-size:14px;">שנה:</label>
           <select id="hist-year" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;width:88px;"></select>
+          <label style="font-weight:700;font-size:14px;">צוות:</label>
+          <select id="hist-team-filter" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;"></select>
         </div>
 
         <div id="hist-yearly-controls" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
@@ -386,6 +396,8 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
           <select id="hist-yearly-year" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;width:88px;"></select>
           <label style="font-weight:700;font-size:14px;">עבור:</label>
           <select id="hist-yearly-employee-select" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;"></select>
+          <label style="font-weight:700;font-size:14px;">צוות (כשבוחרים "כל העובדים"):</label>
+          <select id="hist-yearly-team-filter" style="padding:8px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;background:white;"></select>
         </div>
 
         <div id="hist-employee-controls" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
@@ -422,7 +434,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
     <div id="weekly-panel" class="panel">
       <div class="panel-card">
         <h3>אמצעים שבועי</h3>
-        <p class="panel-sub">בחרו טווח תאריכים כדי לראות אילו כשירויות בוצעו בטווח (ללא תלות במי ביצע) — כמה פעמים, באילו ימים בדיוק, ובאיזה סוג ביצוע (יזום / תרגול).</p>
+        <p class="panel-sub">בחרו טווח תאריכים כדי לראות אילו כשירויות בוצעו בטווח (ללא תלות במי ביצע) — כמה פעמים, באילו ימים בדיוק, מי ביצע, ובאיזה סוג ביצוע (יזום / תרגול).</p>
         <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;">
           <div>
             <label style="font-weight:700;font-size:14px;display:block;margin-bottom:4px;">מתאריך</label>
@@ -453,7 +465,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
     <div id="messages-panel" class="panel">
       <div class="panel-card">
         <h3>שליחת הודעה לעובדים</h3>
-        <p class="panel-sub">כתבו הודעה שתופיע לעובדים באפליקציה. אם הפעילו התראות בטלפון (בלשונית "הגדרות מנהל"), ההודעה תישלח אליהם גם כהתראת Push דרך בדיקה יומית אוטומטית — גם כשהאפליקציה סגורה.</p>
+        <p class="panel-sub">כתבו הודעה שתופיע לעובדים באפליקציה ברגע שהם נכנסים אליה.</p>
 
         <textarea id="msg-text" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:9px;font-size:14px;direction:rtl;resize:vertical;" placeholder="תוכן ההודעה..."></textarea>
 
@@ -487,7 +499,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
             <select id="msg-day-of-month" style="padding:7px 10px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;"></select>
           </span>
         </div>
-        <div class="warning-box" id="msg-recurring-note" style="display:none;">הודעות מחזוריות נשלחות פעם ביום דרך הבדיקה האוטומטית — הדיוק הוא ברמת יום, לא שעה מדויקת.</div>
+        <div class="warning-box" id="msg-recurring-note" style="display:none;">הודעות מחזוריות מוצגות לעובד כל פעם שהוא נכנס לאפליקציה במחזור הרלוונטי (יום/שבוע/חודש) — כאן אין מנגנון Push לטלפון סגור, אז חשוב שהעובדים יפתחו את האפליקציה כדי לראות אותן.</div>
 
         <button class="btn-primary" onclick="sendOrScheduleMessage()">שלח / צור הודעה</button>
         <div class="panel-save-msg" id="msg-save-msg">נשמר!</div>
@@ -507,8 +519,16 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
     <!-- EMPLOYEES -->
     <div id="employees-panel" class="panel">
       <div class="panel-card">
+        <h3>ניהול צוותים</h3>
+        <p class="panel-sub">חלקו את העובדים לצוותים — קבעו כמה צוותים יש ואיך לקרוא לכל אחד. את השיוך של כל עובד לצוות קובעים למטה, ברשימת העובדים.</p>
+        <div id="team-inputs"></div>
+        <button class="btn-add-dashed" onclick="addTeam()">+ הוסף צוות</button>
+        <button class="btn-primary" onclick="saveTeams()">שמור צוותים</button>
+        <div class="panel-save-msg" id="teams-save-msg">נשמר!</div>
+      </div>
+      <div class="panel-card">
         <h3>ניהול עובדים</h3>
-        <p class="panel-sub">הוסף, מחק או ערוך עובדים.</p>
+        <p class="panel-sub">הוסף, מחק או ערוך עובדים. אפשר גם לשייך כל עובד לצוות מהרשימה הנפתחת.</p>
         <div class="warning-box">לאחר שמירה, העובד יצטרך להשתמש בקוד החדש.</div>
         <div id="emp-manage-list"></div>
         <button class="btn-add-dashed" onclick="addEmployee()">+ הוסף עובד</button>
@@ -550,11 +570,6 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
           <div class="pin-err" id="master-pin-err"></div>
           <div class="panel-save-msg" id="master-pin-msg">הקוד עודכן בהצלחה!</div>
         </div>
-        <div class="info-box" style="margin-top:1.5rem;">
-          <b>לגבי התראות לטלפון:</b> המערכת שולחת התראות Push אמיתיות גם כשהאפליקציה סגורה, דרך פונקציית שרת (Firebase Cloud Function) שרצה פעם ביום ובודקת כשירויות שפגות או עומדות לפוג.
-          כדי שזה יעבוד: יש לפרוס את הקבצים שבתיקיית <code>functions/</code> ואת <code>firebase-messaging-sw.js</code> (ראו קובץ ההנחיות DEPLOY_INSTRUCTIONS.md), ולאשר הרשאת התראות בדפדפן/בטלפון בעת ההתחברות.
-        </div>
-        <button class="btn-primary" onclick="setupPushNotifications(currentUser?currentUser.id:'master')" style="margin-top:.8rem;">הפעל / רענן התראות בטלפון זה</button>
       </div>
       <div class="panel-card">
         <h3>איפוס כלל הנתונים במערכת</h3>
@@ -614,21 +629,17 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 //     כדי לחסוך הקמת פרויקט נוסף, או להחליף בפרויקט נפרד משלכם)
 // ============================================================
 const firebaseConfig = {
-  apiKey:            "AIzaSyDyTN8H7FwyhA9wjsEH97fwJB2TGJgEfpA",
-  authDomain:        "work-system-73906.firebaseapp.com",
-  databaseURL:       "https://work-system-73906-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:         "work-system-73906",
-  storageBucket:     "work-system-73906.firebasestorage.app",
-  messagingSenderId: "227399680422",
-  appId:             "1:227399680422:web:4911726e11a17572b40f67"
+  apiKey:            "AIzaSyA6gxbG_AnE8UOoL6i6n8JYLCQAp_Vrwo4",
+  authDomain:        "ntrackef.firebaseapp.com",
+  databaseURL:       "https://ntrackef-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "ntrackef",
+  storageBucket:     "ntrackef.firebasestorage.app",
+  messagingSenderId: "739248451672",
+  appId:             "1:739248451672:web:484984031cf9003e9dda2d"
 };
 // ============================================================
 
-let app=null, db=null, messaging=null;
-
-// ⬇️ הדביקו כאן את מפתח ה-VAPID שתקבלו מ-Firebase Console:
-// Project settings > Cloud Messaging > Web configuration > Generate key pair
-const VAPID_KEY = "REPLACE_WITH_YOUR_VAPID_KEY";
+let app=null, db=null;
 
 const DEFAULT_EMPLOYEES = [
   {id:'emp1',name:'עובד 1',pin:'0001'},{id:'emp2',name:'עובד 2',pin:'0002'},
@@ -657,7 +668,7 @@ const DEFAULT_QUALS = [
 let currentUser = null;
 let barChartInst=null, pieChartInst=null, historyChartInst=null;
 let masterUnsub=null;
-let cachedEmployees=null, cachedQuals=null, cachedMaster=null, cachedAssignments=null, cachedUnavailability=null;
+let cachedEmployees=null, cachedQuals=null, cachedMaster=null, cachedAssignments=null, cachedTeams=null, cachedUnavailability=null;
 let notifiedThisSession=new Set();
 
 // ===== FIREBASE HELPERS =====
@@ -695,6 +706,11 @@ async function getAssignments(){
   if(cachedAssignments) return cachedAssignments;
   cachedAssignments=await fbGet('quals_config/assignments')||{};
   return cachedAssignments;
+}
+async function getTeams(){
+  if(cachedTeams) return cachedTeams;
+  cachedTeams=await fbGet('quals_config/teams')||[];
+  return cachedTeams;
 }
 async function getUnavailability(){
   if(cachedUnavailability) return cachedUnavailability;
@@ -824,33 +840,7 @@ async function loadEmpQualData(empId){
   });
 }
 
-// ===== PUSH NOTIFICATIONS (Firebase Cloud Messaging) =====
-async function setupPushNotifications(userId){
-  if(!('serviceWorker' in navigator) || !('PushManager' in window)){
-    console.warn('דפדפן זה לא תומך בהתראות Push');
-    return;
-  }
-  try{
-    if(!messaging) messaging=firebase.messaging();
-    const reg=await navigator.serviceWorker.register('firebase-messaging-sw.js');
-    let perm=Notification.permission;
-    if(perm==='default') perm=await Notification.requestPermission();
-    if(perm!=='granted'){ console.warn('הרשאת התראות נדחתה'); return; }
-    const token=await messaging.getToken({vapidKey:VAPID_KEY, serviceWorkerRegistration:reg});
-    if(token){
-      await db.ref('quals_tokens/'+userId).push({token,updatedAt:Date.now()});
-    }
-  }catch(e){ console.error('הרשמה להתראות נכשלה',e); }
-}
-function setupForegroundMessages(){
-  if(!messaging) return;
-  messaging.onMessage(payload=>{
-    const title=(payload.notification&&payload.notification.title)||'התראה';
-    const body=(payload.notification&&payload.notification.body)||'';
-    try{ new Notification(title,{body}); }catch(e){}
-  });
-}
-function notifyForRows(){ /* ההתראות בפועל נשלחות דרך Cloud Function מתוזמן, ראו functions/index.js */ }
+function notifyForRows(){ /* project2 אין לו התראות פוש */ }
 
 // ===== LOGIN =====
 async function buildLoginSelect(){
@@ -953,7 +943,7 @@ var _t=setInterval(function(){
 window.doLogout=function(){
   try{ if(masterUnsub){masterUnsub();} }catch(e){ console.error('שגיאה בניתוק מאזין:',e); }
   masterUnsub=null;
-  cachedEmployees=null;cachedQuals=null;cachedMaster=null;cachedAssignments=null;cachedUnavailability=null;
+  cachedEmployees=null;cachedQuals=null;cachedMaster=null;cachedAssignments=null;cachedTeams=null;cachedUnavailability=null;
   currentUser=null;
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
@@ -969,8 +959,6 @@ async function enterEmployee(){
   document.getElementById('header-user-name').textContent=currentUser.name;
   document.getElementById('employee-view').style.display='block';
   document.getElementById('master-view').style.display='none';
-  setupForegroundMessages();
-  await setupPushNotifications(currentUser.id);
   await renderEmployeeMessages();
   await renderEmployeeTable();
 }
@@ -1047,11 +1035,10 @@ async function enterMaster(){
   document.getElementById('header-user-name').textContent='מנהל ראשי';
   document.getElementById('employee-view').style.display='none';
   document.getElementById('master-view').style.display='block';
-  setupForegroundMessages();
-  await setupPushNotifications('master');
   await renderMasterView();
   await buildQualEditor();
   await buildAssignmentEditor();
+  await buildTeamsEditor();
   await buildMessagesEditor();
   await buildEmployeeManager();
   await buildAvailabilityTable();
@@ -1069,7 +1056,7 @@ window.showMasterTab=function(tab){
   if(tab==='history') buildHistoryControls();
   if(tab==='weekly') buildWeeklyControls();
   if(tab==='messages') buildMessagesEditor();
-  if(tab==='employees'){ buildEmployeeManager(); buildAvailabilityTable(); }
+  if(tab==='employees'){ buildTeamsEditor(); buildEmployeeManager(); buildAvailabilityTable(); }
   if(tab==='dashboard') renderMasterView();
 };
 
@@ -1256,6 +1243,26 @@ async function buildHistoryControls(){
   if(previouslySelectedYearly && (previouslySelectedYearly==='all' || emps.some(e=>e.id===previouslySelectedYearly))){ yearlyEmpSel.value=previouslySelectedYearly; }
   yearlyEmpSel.onchange=hideHistoryResults;
 
+  const teams=await getTeams();
+  const teamFilterSel=document.getElementById('hist-team-filter');
+  if(teamFilterSel){
+    const prevTeamFilter=teamFilterSel.value;
+    teamFilterSel.innerHTML='<option value="all">כל הצוותים</option>';
+    teams.forEach(t=>{ const o=document.createElement('option');o.value=t.id;o.textContent=t.name;teamFilterSel.appendChild(o); });
+    const noneOpt=document.createElement('option');noneOpt.value='__none__';noneOpt.textContent='ללא צוות';teamFilterSel.appendChild(noneOpt);
+    if(prevTeamFilter && (prevTeamFilter==='all'||prevTeamFilter==='__none__'||teams.some(t=>t.id===prevTeamFilter))){ teamFilterSel.value=prevTeamFilter; }
+    teamFilterSel.onchange=hideHistoryResults;
+  }
+  const yearlyTeamFilterSel=document.getElementById('hist-yearly-team-filter');
+  if(yearlyTeamFilterSel){
+    const prevYearlyTeamFilter=yearlyTeamFilterSel.value;
+    yearlyTeamFilterSel.innerHTML='<option value="all">כל הצוותים</option>';
+    teams.forEach(t=>{ const o=document.createElement('option');o.value=t.id;o.textContent=t.name;yearlyTeamFilterSel.appendChild(o); });
+    const noneOpt2=document.createElement('option');noneOpt2.value='__none__';noneOpt2.textContent='ללא צוות';yearlyTeamFilterSel.appendChild(noneOpt2);
+    if(prevYearlyTeamFilter && (prevYearlyTeamFilter==='all'||prevYearlyTeamFilter==='__none__'||teams.some(t=>t.id===prevYearlyTeamFilter))){ yearlyTeamFilterSel.value=prevYearlyTeamFilter; }
+    yearlyTeamFilterSel.onchange=hideHistoryResults;
+  }
+
   const qualFilterSel=document.getElementById('hist-employee-qual-filter');
   if(qualFilterSel){
     const previouslySelectedQual=qualFilterSel.value;
@@ -1313,8 +1320,6 @@ function computeHistoryTimeliness(historyArr,freq){
   return [...annotatedReal,...annotatedManager];
 }
 function getOngoingExpiredRow(q,rec){
-  // A qualification that's currently sitting expired (never resolved since it became due)
-  // doesn't show up in the history log at all — this reconstructs that as a reportable row.
   const st=computeStatus(rec.lastDate||'',q.freq);
   if(st.status!=='red'||st.isNeverDone||!st.nextDate) return null;
   return {
@@ -1330,6 +1335,9 @@ window.generateHistorySummary=async function(){
   const quals=await getQuals();
   const assignments=await getAssignments();
   const allData=await fbGet('quals_data')||{};
+  const teams=await getTeams();
+  const teamNameById={};
+  teams.forEach(t=>{ teamNameById[t.id]=t.name; });
   const thead=document.getElementById('history-summary-thead');
   const tbody=document.getElementById('history-summary-body');
   const titleEl=document.getElementById('history-summary-title');
@@ -1339,11 +1347,15 @@ window.generateHistorySummary=async function(){
   if(_historyMode==='monthly'){
     const month=parseInt(document.getElementById('hist-month').value);
     const year=parseInt(document.getElementById('hist-year').value);
-    const emps=await getEmployees();
+    const teamFilterVal=document.getElementById('hist-team-filter')?document.getElementById('hist-team-filter').value:'all';
+    let emps=await getEmployees();
+    if(teamFilterVal==='__none__'){ emps=emps.filter(e=>!e.team); }
+    else if(teamFilterVal!=='all'){ emps=emps.filter(e=>e.team===teamFilterVal); }
     emps.forEach(emp=>{
       const empAssignment=assignments[emp.id];
       const applicableQuals=empAssignment?quals.filter(q=>empAssignment[q.id]):quals;
       const saved=allData[emp.id]||{};
+      const teamName=emp.team?(teamNameById[emp.team]||'ללא צוות'):'ללא צוות';
       applicableQuals.forEach(q=>{
         const rec=saved[q.id]||{};
         const histRaw=rec.history?Object.values(rec.history).filter(h=>h&&h.date):[];
@@ -1351,27 +1363,28 @@ window.generateHistorySummary=async function(){
         annotated.forEach(h=>{
           const parts=h.date.split('-');
           if(parseInt(parts[0])===year && parseInt(parts[1])===month){
-            rows.push({emp:emp.name,qual:q.name,date:h.date,type:h.type||'',tStatus:h.tStatus,tLabel:h.tLabel});
+            rows.push({emp:emp.name,team:teamName,qual:q.name,date:h.date,type:h.type||'',tStatus:h.tStatus,tLabel:h.tLabel});
           }
         });
         const ongoing=getOngoingExpiredRow(q,rec);
         if(ongoing){
           const parts=ongoing.date.split('-');
           if(parseInt(parts[0])===year && parseInt(parts[1])===month){
-            rows.push({emp:emp.name,qual:q.name,date:ongoing.date,type:'—',tStatus:ongoing.tStatus,tLabel:ongoing.tLabel});
+            rows.push({emp:emp.name,team:teamName,qual:q.name,date:ongoing.date,type:'—',tStatus:ongoing.tStatus,tLabel:ongoing.tLabel});
           }
         }
       });
     });
     rows.sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:0));
-    titleEl.textContent='סיכום חודשי — '+HEBREW_MONTHS_FULL[month-1]+' '+year;
-    thead.innerHTML='<tr><th>עובד</th><th>כשירות</th><th>תאריך</th><th>סוג</th><th>עמידה בזמנים</th></tr>';
+    const teamSuffix=teamFilterVal==='all'?'':(teamFilterVal==='__none__'?' — ללא צוות':' — '+(teamNameById[teamFilterVal]||''));
+    titleEl.textContent='סיכום חודשי — '+HEBREW_MONTHS_FULL[month-1]+' '+year+teamSuffix;
+    thead.innerHTML='<tr><th>עובד</th><th>צוות</th><th>כשירות</th><th>תאריך</th><th>סוג</th><th>עמידה בזמנים</th></tr>';
     tbody.innerHTML=rows.length
-      ? rows.map(r=>'<tr class="row-'+r.tStatus+'"><td>'+r.emp+'</td><td>'+r.qual+'</td><td>'+formatDate(r.date)+'</td><td>'+(r.type||'—')+'</td>'+
+      ? rows.map(r=>'<tr class="row-'+r.tStatus+'"><td>'+r.emp+'</td><td>'+r.team+'</td><td>'+r.qual+'</td><td>'+formatDate(r.date)+'</td><td>'+(r.type||'—')+'</td>'+
           '<td><div class="status-cell"><div class="status-dot status-'+r.tStatus+'"></div><span class="badge-days '+r.tStatus+'">'+r.tLabel+'</span></div></td></tr>').join('')
-      : '<tr><td colspan="5" style="text-align:center;color:#999;padding:1rem;">לא נמצאו רישומים בחודש זה</td></tr>';
+      : '<tr><td colspan="6" style="text-align:center;color:#999;padding:1rem;">לא נמצאו רישומים בחודש זה</td></tr>';
 
-    chartTitleEl.textContent='התפלגות עמידה בזמנים לפי עובד — '+HEBREW_MONTHS_FULL[month-1]+' '+year;
+    chartTitleEl.textContent='התפלגות עמידה בזמנים לפי עובד — '+HEBREW_MONTHS_FULL[month-1]+' '+year+teamSuffix;
     const empCounts={};
     rows.forEach(r=>{
       if(!empCounts[r.emp]) empCounts[r.emp]={green:0,orange:0,expired:0};
@@ -1395,38 +1408,45 @@ window.generateHistorySummary=async function(){
   } else if(_historyMode==='yearly'){
     const year=parseInt(document.getElementById('hist-yearly-year').value);
     const scopeId=document.getElementById('hist-yearly-employee-select').value;
+    const yearlyTeamFilterVal=document.getElementById('hist-yearly-team-filter')?document.getElementById('hist-yearly-team-filter').value:'all';
     const emps=await getEmployees();
-    const scopedEmps=scopeId==='all'?emps:emps.filter(e=>e.id===scopeId);
+    let scopedEmps=scopeId==='all'?emps:emps.filter(e=>e.id===scopeId);
+    if(scopeId==='all'){
+      if(yearlyTeamFilterVal==='__none__'){ scopedEmps=scopedEmps.filter(e=>!e.team); }
+      else if(yearlyTeamFilterVal!=='all'){ scopedEmps=scopedEmps.filter(e=>e.team===yearlyTeamFilterVal); }
+    }
     scopedEmps.forEach(emp=>{
       const empAssignment=assignments[emp.id];
       const applicableQuals=empAssignment?quals.filter(q=>empAssignment[q.id]):quals;
       const saved=allData[emp.id]||{};
+      const teamName=emp.team?(teamNameById[emp.team]||'ללא צוות'):'ללא צוות';
       applicableQuals.forEach(q=>{
         const rec=saved[q.id]||{};
         const histRaw=rec.history?Object.values(rec.history).filter(h=>h&&h.date):[];
         const annotated=computeHistoryTimeliness(histRaw,q.freq);
         annotated.forEach(h=>{
           const y=parseInt(h.date.split('-')[0]);
-          if(y===year){ rows.push({emp:emp.name,qual:q.name,date:h.date,type:h.type||'',tStatus:h.tStatus,tLabel:h.tLabel}); }
+          if(y===year){ rows.push({emp:emp.name,team:teamName,qual:q.name,date:h.date,type:h.type||'',tStatus:h.tStatus,tLabel:h.tLabel}); }
         });
         const ongoing=getOngoingExpiredRow(q,rec);
         if(ongoing){
           const y=parseInt(ongoing.date.split('-')[0]);
-          if(y===year){ rows.push({emp:emp.name,qual:q.name,date:ongoing.date,type:'—',tStatus:ongoing.tStatus,tLabel:ongoing.tLabel}); }
+          if(y===year){ rows.push({emp:emp.name,team:teamName,qual:q.name,date:ongoing.date,type:'—',tStatus:ongoing.tStatus,tLabel:ongoing.tLabel}); }
         }
       });
     });
     rows.sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:0));
 
     if(scopeId==='all'){
-      titleEl.textContent='סיכום שנתי — '+year+' — כל העובדים';
-      thead.innerHTML='<tr><th>עובד</th><th>כשירות</th><th>תאריך</th><th>סוג</th><th>עמידה בזמנים</th></tr>';
+      const teamSuffix=yearlyTeamFilterVal==='all'?'':(yearlyTeamFilterVal==='__none__'?' — ללא צוות':' — '+(teamNameById[yearlyTeamFilterVal]||''));
+      titleEl.textContent='סיכום שנתי — '+year+' — כל העובדים'+teamSuffix;
+      thead.innerHTML='<tr><th>עובד</th><th>צוות</th><th>כשירות</th><th>תאריך</th><th>סוג</th><th>עמידה בזמנים</th></tr>';
       tbody.innerHTML=rows.length
-        ? rows.map(r=>'<tr class="row-'+r.tStatus+'"><td>'+r.emp+'</td><td>'+r.qual+'</td><td>'+formatDate(r.date)+'</td><td>'+(r.type||'—')+'</td>'+
+        ? rows.map(r=>'<tr class="row-'+r.tStatus+'"><td>'+r.emp+'</td><td>'+r.team+'</td><td>'+r.qual+'</td><td>'+formatDate(r.date)+'</td><td>'+(r.type||'—')+'</td>'+
             '<td><div class="status-cell"><div class="status-dot status-'+r.tStatus+'"></div><span class="badge-days '+r.tStatus+'">'+r.tLabel+'</span></div></td></tr>').join('')
-        : '<tr><td colspan="5" style="text-align:center;color:#999;padding:1rem;">לא נמצאו רישומים בשנה זו</td></tr>';
+        : '<tr><td colspan="6" style="text-align:center;color:#999;padding:1rem;">לא נמצאו רישומים בשנה זו</td></tr>';
 
-      chartTitleEl.textContent='התפלגות עמידה בזמנים לפי עובד — '+year;
+      chartTitleEl.textContent='התפלגות עמידה בזמנים לפי עובד — '+year+teamSuffix;
       const empCounts={};
       rows.forEach(r=>{
         if(!empCounts[r.emp]) empCounts[r.emp]={green:0,orange:0,expired:0};
@@ -1512,15 +1532,80 @@ window.downloadHistoryPdf=function(){
   window.print();
 };
 
+// ===== TEAMS MANAGER =====
+let _workingTeams=[];
+async function buildTeamsEditor(){
+  const teams=await getTeams();
+  _workingTeams=teams.map(t=>({...t}));
+  renderTeamInputs(_workingTeams);
+}
+function renderTeamInputs(teams){
+  const c=document.getElementById('team-inputs');
+  if(!c) return;
+  c.innerHTML='';
+  if(!teams.length){
+    c.innerHTML='<p style="font-size:13px;color:#999;margin-bottom:.5rem;">אין עדיין צוותים מוגדרים — הוסיפו צוות ראשון למטה.</p>';
+    return;
+  }
+  teams.forEach((t,i)=>{
+    const div=document.createElement('div');div.className='qual-row';
+    div.innerHTML='<div class="qual-num">'+(i+1)+'</div>'+
+      '<input class="qual-name" type="text" value="'+t.name+'" id="team-name-'+i+'" placeholder="שם צוות '+(i+1)+'" style="flex:1;">'+
+      '<button class="btn-del-sec" onclick="deleteTeam('+i+')" title="מחק">×</button>';
+    c.appendChild(div);
+  });
+}
+function getCurrentTeams(){
+  const teams=[];let i=0;
+  while(document.getElementById('team-name-'+i)){
+    const name=document.getElementById('team-name-'+i).value.trim()||'צוות '+(i+1);
+    const existingId=_workingTeams[i]?_workingTeams[i].id:('team'+Date.now()+i);
+    teams.push({id:existingId,name});
+    i++;
+  }
+  return teams;
+}
+window.addTeam=function(){
+  _workingTeams=getCurrentTeams();
+  _workingTeams.push({id:'team'+Date.now(),name:'צוות '+(_workingTeams.length+1)});
+  renderTeamInputs(_workingTeams);
+};
+window.deleteTeam=function(idx){
+  if(!confirm('למחוק את "'+_workingTeams[idx].name+'"? עובדים ששויכו לצוות הזה יעברו ל"ללא צוות".'))return;
+  _workingTeams=getCurrentTeams();
+  _workingTeams.splice(idx,1);
+  renderTeamInputs(_workingTeams);
+};
+window.saveTeams=async function(){
+  const teams=getCurrentTeams();
+  showLoading(true);
+  await fbSet('quals_config/teams',teams);
+  cachedTeams=teams;_workingTeams=teams;
+  showLoading(false);
+  showSaveMsg('teams-save-msg');
+  await buildEmployeeManager();
+  await renderMasterView();
+  await buildHistoryControls();
+};
+
 // ===== EMPLOYEES MANAGER =====
 let _workingEmps=[];
+let _teamsForEmpManager=[];
 async function buildEmployeeManager(){
   const emps=await getEmployees();
-  _workingEmps=[...emps];
+  _workingEmps=emps.map(e=>({...e}));
+  _teamsForEmpManager=await getTeams();
   renderEmpRows(_workingEmps);
 }
 function renderEmpRows(emps){
   const c=document.getElementById('emp-manage-list');c.innerHTML='';
+  const teamOptionsHtml=(selectedTeamId)=>{
+    let html='<option value=""'+(!selectedTeamId?' selected':'')+'>ללא צוות</option>';
+    _teamsForEmpManager.forEach(t=>{
+      html+='<option value="'+t.id+'"'+(selectedTeamId===t.id?' selected':'')+'>'+t.name+'</option>';
+    });
+    return html;
+  };
   emps.forEach((emp,i)=>{
     const div=document.createElement('div');div.className='emp-manage-row';
     div.innerHTML=
@@ -1531,16 +1616,19 @@ function renderEmpRows(emps){
       '<div style="display:flex;flex-direction:column;gap:3px;">'+
         '<span class="emp-manage-label">קוד (4 ספרות)</span>'+
         '<input class="emp-manage-pin" type="text" value="'+emp.pin+'" id="emp-pin-'+i+'" maxlength="4" inputmode="numeric"></div>'+
+      '<div style="display:flex;flex-direction:column;gap:3px;">'+
+        '<span class="emp-manage-label">צוות</span>'+
+        '<select class="emp-team-select" id="emp-team-'+i+'">'+teamOptionsHtml(emp.team)+'</select></div>'+
       '<button class="btn-del-emp" onclick="deleteEmployee('+i+')" title="מחק">×</button>';
     c.appendChild(div);
   });
 }
 window.addEmployee=function(){
   _workingEmps.forEach((emp,i)=>{
-    const n=document.getElementById('emp-name-'+i);const p=document.getElementById('emp-pin-'+i);
-    if(n)emp.name=n.value.trim()||emp.name;if(p)emp.pin=p.value.trim()||emp.pin;
+    const n=document.getElementById('emp-name-'+i);const p=document.getElementById('emp-pin-'+i);const t=document.getElementById('emp-team-'+i);
+    if(n)emp.name=n.value.trim()||emp.name;if(p)emp.pin=p.value.trim()||emp.pin;if(t)emp.team=t.value;
   });
-  _workingEmps.push({id:'emp'+Date.now(),name:'עובד '+(_workingEmps.length+1),pin:'0000'});
+  _workingEmps.push({id:'emp'+Date.now(),name:'עובד '+(_workingEmps.length+1),pin:'0000',team:''});
   renderEmpRows(_workingEmps);
 };
 window.deleteEmployee=function(idx){
@@ -1553,12 +1641,14 @@ window.saveEmployeeManage=async function(){
   const updated=_workingEmps.map((emp,i)=>{
     const n=document.getElementById('emp-name-'+i);
     const p=document.getElementById('emp-pin-'+i);
+    const t=document.getElementById('emp-team-'+i);
     const newName=n?n.value.trim():emp.name;
     const newPin=p?p.value.trim():emp.pin;
+    const newTeam=t?t.value:(emp.team||'');
     if(!newName) errors.push('שם עובד '+(i+1)+' ריק');
     if(!/^\d{4}$/.test(newPin)){if(p)p.style.borderColor='#e53e3e';errors.push('קוד עובד '+(i+1)+' חייב להיות 4 ספרות');}
     else{if(p)p.style.borderColor='#e0e0e0';}
-    return{...emp,name:newName,pin:newPin};
+    return{...emp,name:newName,pin:newPin,team:newTeam};
   });
   if(errors.length){alert('שגיאות:\n'+errors.join('\n'));return;}
   showLoading(true);
@@ -1569,6 +1659,7 @@ window.saveEmployeeManage=async function(){
   showSaveMsg('emp-manage-msg');
   await renderMasterView();
   await buildAssignmentEditor();
+  await buildHistoryControls();
   await buildAvailabilityTable();
 };
 
@@ -1663,7 +1754,6 @@ function buildWeeklyControls(){
   const endEl=document.getElementById('weekly-end-picker');
   if(!startEl||!endEl) return;
   const maxY=new Date().getFullYear();
-  // default range: last 7 days
   const today=new Date();
   const weekAgo=new Date(); weekAgo.setDate(today.getDate()-6);
   const s=parseDateParts(weekAgo.toISOString().slice(0,10));
@@ -1692,8 +1782,6 @@ window.generateWeeklySummary=async function(){
   emps.forEach(e=>{ empNameById[e.id]=e.name; });
   const allData=await fbGet('quals_data')||{};
 
-  // Aggregate: for each qualification + type, collect all performances within range (any employee)
-  // key = qualId + '|' + type  ->  { count, entries:[{date, empName}] }
   const agg={};
   Object.entries(allData).forEach(([empId,empRec])=>{
     if(!empRec) return;
@@ -1740,7 +1828,7 @@ window.generateWeeklySummary=async function(){
 };
 window.downloadWeeklyPdf=function(){ window.print(); };
 
-// ===== MESSAGES TO EMPLOYEES (one-time or recurring, in-app + push) =====
+// ===== MESSAGES TO EMPLOYEES (one-time or recurring, in-app) =====
 window.toggleMsgAllEmps=function(){
   const all=document.getElementById('msg-all-emps').checked;
   document.getElementById('msg-emp-list').style.display=all?'none':'flex';
@@ -1928,10 +2016,26 @@ window.renderMasterView=async function(){
   const emps=await getEmployees();
   const quals=await getQuals();
   const assignments=await getAssignments();
+  const teams=await getTeams();
   const unavailability=await getUnavailability();
   const allData=await fbGet('quals_data')||{};
 
-  const empData=emps.map(emp=>{
+  // Populate / preserve the team filter dropdown
+  const teamFilterSel=document.getElementById('dash-team-filter');
+  if(teamFilterSel){
+    const previouslySelected=teamFilterSel.value;
+    teamFilterSel.innerHTML='<option value="all">כל הצוותים</option>';
+    teams.forEach(t=>{ const o=document.createElement('option');o.value=t.id;o.textContent=t.name;teamFilterSel.appendChild(o); });
+    const unassignedOpt=document.createElement('option');unassignedOpt.value='__none__';unassignedOpt.textContent='ללא צוות';teamFilterSel.appendChild(unassignedOpt);
+    if(previouslySelected && (previouslySelected==='all'||previouslySelected==='__none__'||teams.some(t=>t.id===previouslySelected))){
+      teamFilterSel.value=previouslySelected;
+    }
+  }
+  const teamFilterVal=teamFilterSel?teamFilterSel.value:'all';
+  const teamNameById={};
+  teams.forEach(t=>{ teamNameById[t.id]=t.name; });
+
+  let empData=emps.map(emp=>{
     const saved=allData[emp.id]||{};
     const empAssignment=assignments[emp.id];
     const applicableQuals=empAssignment?quals.filter(q=>empAssignment[q.id]):quals;
@@ -1946,9 +2050,23 @@ window.renderMasterView=async function(){
     const expired=rows.filter(r=>r.status==='red'&&!r.isNeverDone).length;
     const r=neverDone+expired;
     notifyForRows(rows,emp.name);
+    const teamName=emp.team?(teamNameById[emp.team]||'ללא צוות'):'ללא צוות';
     const unavailRecord=unavailability[emp.id];
     const unavailable=isCurrentlyUnavailable(unavailRecord);
-    return{emp,rows,g,o,r,neverDone,expired,total:rows.length,unavailable,unavailRecord};
+    return{emp,rows,g,o,r,neverDone,expired,total:rows.length,teamId:emp.team||'',teamName,unavailable,unavailRecord};
+  });
+
+  // Apply team filter
+  if(teamFilterVal && teamFilterVal!=='all'){
+    if(teamFilterVal==='__none__'){ empData=empData.filter(d=>!d.teamId); }
+    else{ empData=empData.filter(d=>d.teamId===teamFilterVal); }
+  }
+  // Group visually by team (unassigned last)
+  empData.sort((a,b)=>{
+    if(!a.teamId && b.teamId) return 1;
+    if(a.teamId && !b.teamId) return -1;
+    if(a.teamName!==b.teamName) return a.teamName<b.teamName?-1:1;
+    return 0;
   });
 
   // Available employees feed the normal buckets; unavailable employees' quals
@@ -1960,6 +2078,7 @@ window.renderMasterView=async function(){
   const totalNeverDone=avail.reduce((s,d)=>s+d.neverDone,0);
   const totalExpired=avail.reduce((s,d)=>s+d.expired,0);
   const totalR=totalNeverDone+totalExpired;
+  // Unavailable, split by status
   const uG=unavail.reduce((s,d)=>s+d.g,0);
   const uO=unavail.reduce((s,d)=>s+d.o,0);
   const uNeverDone=unavail.reduce((s,d)=>s+d.neverDone,0);
@@ -1967,32 +2086,44 @@ window.renderMasterView=async function(){
   const totalUnavailQuals=uG+uO+uNeverDone+uExpired;
   const unavailEmpCount=unavail.length;
 
-  document.getElementById('stat-employees').textContent=emps.length;
+  document.getElementById('stat-employees').textContent=empData.length;
   document.getElementById('stat-green').textContent=totalG;
   document.getElementById('stat-orange').textContent=totalO;
   document.getElementById('stat-red').textContent=totalR;
   document.getElementById('stat-unavail-emps').textContent=unavailEmpCount;
   document.getElementById('stat-unavail-quals').textContent=totalUnavailQuals;
+  // Breakdown of unavailable quals by status
+  const uBreak=[
+    {v:uG,c:'#38a169',l:'בתוקף'},
+    {v:uO,c:'#e6a817',l:'מתקרב'},
+    {v:uNeverDone,c:'#e53e3e',l:'טרם'},
+    {v:uExpired,c:'#ff1a1a',l:'פג'},
+  ];
+  document.getElementById('stat-unavail-breakdown').innerHTML=
+    uBreak.filter(b=>b.v>0).map(b=>'<span style="background:'+b.c+';">'+b.l+' '+b.v+'</span>').join('');
 
-  // Bar chart — stacked per employee, horizontal for readability with many employees
-  const labels=empData.map(d=>d.emp.name+(d.unavailable?' [לא זמין]':''));
+  // Bar chart — stacked per employee, labeled with team name for clarity, horizontal for readability
+  const labels=empData.map(d=>d.emp.name+(d.teamId?' ('+d.teamName+')':'')+(d.unavailable?' [לא זמין]':''));
   const maxTotal=Math.max(1,...empData.map(d=>d.total));
   if(barChartInst) barChartInst.destroy();
   document.getElementById('barChart-container').style.height=Math.max(220,empData.length*30)+'px';
   const UNAVAIL_COLOR='#7c3aed';
   const UNAVAIL_W=4;
-  // Wrap each unavailable employee's whole row in a thick purple outline.
+  // For each employee, find the first and last non-empty segment so the purple
+  // outline wraps the whole row (right cap on the first, left cap on the last).
   const segOrder=['g','o','neverDone','expired'];
   function firstSeg(d){ return segOrder.find(k=>d[k]>0); }
   function lastSeg(d){ for(let i=segOrder.length-1;i>=0;i--){ if(d[segOrder[i]]>0) return segOrder[i]; } return null; }
+  // Build per-dataset border arrays: every segment of an unavailable row gets a thick
+  // top+bottom; the first non-empty segment also gets a right edge, the last a left edge.
   function borderFor(segKey){
     return {
       color:empData.map(d=>d.unavailable?UNAVAIL_COLOR:'rgba(0,0,0,0)'),
       width:empData.map(d=>{
         if(!d.unavailable) return 0;
         const w={top:UNAVAIL_W,bottom:UNAVAIL_W,left:0,right:0};
-        if(firstSeg(d)===segKey) w.right=UNAVAIL_W;
-        if(lastSeg(d)===segKey)  w.left=UNAVAIL_W;
+        if(firstSeg(d)===segKey) w.right=UNAVAIL_W; // right = start of RTL row
+        if(lastSeg(d)===segKey)  w.left=UNAVAIL_W;  // left = end of RTL row
         return w;
       }),
     };
@@ -2010,14 +2141,16 @@ window.renderMasterView=async function(){
       scales:{x:{stacked:true,min:0,max:maxTotal,ticks:{stepSize:1,font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},color:(ctx)=>empData[ctx.index]&&empData[ctx.index].unavailable?'#7c3aed':'#666'}}}}
   });
 
-  // Pie — available quals in the normal 4 slices; unavailable quals as up to 4
-  // extra sub-slices (same status colors) each with a thick purple border.
+  // Pie — overall distribution (within current team filter).
+  // Available quals show in the normal 4 slices; unavailable quals appear as up to
+  // 4 extra sub-slices (same status colors) each marked with a thick purple border.
   if(pieChartInst) pieChartInst.destroy();
   const pieLabels=['בתוקף','מתקרב לפקיעה','טרם בוצע','פג תוקף'];
   const pieData=[totalG,totalO,totalNeverDone,totalExpired];
   const pieColors=['#38a169','#e6a817','#e53e3e','#ff1a1a'];
   const pieBorderC=['#fff','#fff','#fff','#fff'];
   const pieBorderW=[2,2,2,2];
+  // Unavailable sub-slices, split by status, purple-outlined
   const uSlices=[
     {label:'לא זמין - בתוקף',val:uG,color:'#38a169'},
     {label:'לא זמין - מתקרב',val:uO,color:'#e6a817'},
@@ -2029,10 +2162,11 @@ window.renderMasterView=async function(){
       pieLabels.push(s.label);
       pieData.push(s.val);
       pieColors.push(s.color);
-      pieBorderC.push('#7c3aed');
+      pieBorderC.push('#7c3aed'); // purple identifies unavailable
       pieBorderW.push(4);
     }
   });
+  // Inline plugin: draw the count on each slice, updating automatically with the data.
   const sliceNumberPlugin={
     id:'sliceNumbers',
     afterDatasetsDraw(chart){
@@ -2040,7 +2174,7 @@ window.renderMasterView=async function(){
       const meta=chart.getDatasetMeta(0);
       meta.data.forEach((arc,i)=>{
         const val=chart.data.datasets[0].data[i];
-        if(!val) return;
+        if(!val) return; // don't label empty slices
         const {x,y}=arc.tooltipPosition();
         ctx.save();
         ctx.fillStyle='#fff';
@@ -2066,13 +2200,21 @@ window.renderMasterView=async function(){
     plugins:[sliceNumberPlugin]
   });
 
-  // Table
+  // Table — grouped by team, with a team badge column
   const tbody=document.getElementById('master-table-body');
   tbody.innerHTML='';
+  let lastTeamHeader=null;
   empData.forEach(d=>{
+    if(d.teamName!==lastTeamHeader){
+      lastTeamHeader=d.teamName;
+      const headerTr=document.createElement('tr');
+      headerTr.innerHTML='<td colspan="7" style="background:#f8f9fa;font-weight:700;font-size:12px;color:#555;">'+d.teamName+'</td>';
+      tbody.appendChild(headerTr);
+    }
     const tr=document.createElement('tr');
     if(d.unavailable) tr.className='row-unavailable';
     else if(d.r>0) tr.style.background='#fff5f5';
+    const teamBadgeClass=d.teamId?'':'none';
     const availHtml=d.unavailable
       ?'<span class="unavailable-badge">לא זמין</span>'+
         '<div style="font-size:11px;color:#6b21a8;margin-top:3px;line-height:1.5;">'+
@@ -2082,6 +2224,7 @@ window.renderMasterView=async function(){
       :'<span class="available-badge">זמין</span>';
     tr.innerHTML=
       '<td data-label="עובד" style="font-weight:700;">'+d.emp.name+'</td>'+
+      '<td data-label="צוות"><span class="team-badge '+teamBadgeClass+'">'+d.teamName+'</span></td>'+
       '<td data-label="זמינות">'+availHtml+'</td>'+
       '<td data-label="בתוקף"><span class="count-pill pill-green">'+d.g+'</span></td>'+
       '<td data-label="מתקרב"><span class="count-pill pill-orange">'+d.o+'</span></td>'+
@@ -2099,6 +2242,7 @@ window.showDetail=async function(empId,empName){
   const unavailability=await getUnavailability();
   const uRec=unavailability[empId];
   if(uRec && isCurrentlyUnavailable(uRec)){
+    availBanner.style.display='block';
     availBanner.style.cssText='display:block;background:#ede9fe;border:1.5px solid #8b5cf6;border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem;';
     availBanner.innerHTML=
       '<div style="font-size:14px;font-weight:700;color:#6b21a8;margin-bottom:4px;">🚫 עובד לא זמין</div>'+
