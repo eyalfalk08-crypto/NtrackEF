@@ -119,7 +119,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .hist-mode-btn{padding:9px 16px;border-radius:8px;border:1.5px solid #e0e0e0;background:white;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .hist-mode-btn.active{background:#1a1a2e;color:white;border-color:#1a1a2e;}
 .master-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin-bottom:1.2rem;}
-@media(min-width:600px){.master-stats{grid-template-columns:repeat(4,1fr);}}
+@media(min-width:600px){.master-stats{grid-template-columns:repeat(5,1fr);}}
 .stat-card{background:white;border-radius:12px;padding:1rem 1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .stat-label{font-size:11px;color:#888;font-weight:700;}
 .stat-value{font-size:22px;font-weight:800;color:#1a1a2e;margin-top:2px;}
@@ -127,6 +127,8 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
 .stat-green .stat-value{color:#38a169;}
 .stat-orange .stat-value{color:#e6a817;}
 .stat-red .stat-value{color:#e53e3e;}
+.stat-unavail{border:2px solid #7c3aed;}
+.stat-unavail .stat-value{color:#7c3aed;}
 .master-grid{display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1.2rem;}
 @media(min-width:700px){.master-grid{grid-template-columns:1fr 1fr;}}
 .chart-card{background:white;border-radius:12px;padding:1.2rem;box-shadow:0 2px 8px rgba(0,0,0,.06);}
@@ -294,6 +296,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
         <div class="stat-card stat-green"><div class="stat-label">בתוקף</div><div class="stat-value" id="stat-green">0</div><div class="stat-sub">כשירויות</div></div>
         <div class="stat-card stat-orange"><div class="stat-label">מתקרב לפקיעה</div><div class="stat-value" id="stat-orange">0</div><div class="stat-sub">כשירויות</div></div>
         <div class="stat-card stat-red"><div class="stat-label">פג תוקף</div><div class="stat-value" id="stat-red">0</div><div class="stat-sub">כשירויות</div></div>
+        <div class="stat-card stat-unavail"><div class="stat-label">לא זמין</div><div class="stat-value" id="stat-unavail-emps">0</div><div class="stat-sub"><span id="stat-unavail-quals">0</span> כשירויות</div></div>
       </div>
       <div class="master-grid">
         <div class="chart-card"><h3>סטטוס כשירויות לפי עובד</h3><div id="barChart-container" style="position:relative;height:220px;width:100%;"><canvas id="barChart"></canvas></div></div>
@@ -571,6 +574,7 @@ tbody td{padding:10px 12px;font-size:13px;vertical-align:middle;}
   <div class="modal-box">
     <button class="modal-close" onclick="closeDetail()">✕</button>
     <h2 id="detail-title">פרטי עובד</h2>
+    <div id="detail-availability" style="display:none;"></div>
     <div class="table-scroll">
       <table>
         <thead><tr><th>#</th><th>שם הכשירות</th><th>תדירות</th><th>ביצוע אחרון</th><th>ביצוע הבא</th><th>סטטוס</th><th>היסטוריה</th><th>איפוס</th></tr></thead>
@@ -1947,42 +1951,119 @@ window.renderMasterView=async function(){
     return{emp,rows,g,o,r,neverDone,expired,total:rows.length,unavailable,unavailRecord};
   });
 
-  const totalG=empData.reduce((s,d)=>s+d.g,0);
-  const totalO=empData.reduce((s,d)=>s+d.o,0);
-  const totalR=empData.reduce((s,d)=>s+d.r,0);
-  const totalNeverDone=empData.reduce((s,d)=>s+d.neverDone,0);
-  const totalExpired=empData.reduce((s,d)=>s+d.expired,0);
+  // Available employees feed the normal buckets; unavailable employees' quals
+  // move entirely into the "unavailable" buckets, split by the same status types.
+  const avail=empData.filter(d=>!d.unavailable);
+  const unavail=empData.filter(d=>d.unavailable);
+  const totalG=avail.reduce((s,d)=>s+d.g,0);
+  const totalO=avail.reduce((s,d)=>s+d.o,0);
+  const totalNeverDone=avail.reduce((s,d)=>s+d.neverDone,0);
+  const totalExpired=avail.reduce((s,d)=>s+d.expired,0);
+  const totalR=totalNeverDone+totalExpired;
+  const uG=unavail.reduce((s,d)=>s+d.g,0);
+  const uO=unavail.reduce((s,d)=>s+d.o,0);
+  const uNeverDone=unavail.reduce((s,d)=>s+d.neverDone,0);
+  const uExpired=unavail.reduce((s,d)=>s+d.expired,0);
+  const totalUnavailQuals=uG+uO+uNeverDone+uExpired;
+  const unavailEmpCount=unavail.length;
 
   document.getElementById('stat-employees').textContent=emps.length;
   document.getElementById('stat-green').textContent=totalG;
   document.getElementById('stat-orange').textContent=totalO;
   document.getElementById('stat-red').textContent=totalR;
+  document.getElementById('stat-unavail-emps').textContent=unavailEmpCount;
+  document.getElementById('stat-unavail-quals').textContent=totalUnavailQuals;
 
   // Bar chart — stacked per employee, horizontal for readability with many employees
-  const labels=empData.map(d=>d.emp.name+(d.unavailable?' (לא זמין)':''));
+  const labels=empData.map(d=>d.emp.name+(d.unavailable?' [לא זמין]':''));
   const maxTotal=Math.max(1,...empData.map(d=>d.total));
   if(barChartInst) barChartInst.destroy();
   document.getElementById('barChart-container').style.height=Math.max(220,empData.length*30)+'px';
-  const unavailBorders=empData.map(d=>d.unavailable?'#8b5cf6':'rgba(0,0,0,0)');
-  const unavailBorderWidths=empData.map(d=>d.unavailable?{top:2,bottom:2,left:0,right:0}:0);
+  const UNAVAIL_COLOR='#7c3aed';
+  const UNAVAIL_W=4;
+  // Wrap each unavailable employee's whole row in a thick purple outline.
+  const segOrder=['g','o','neverDone','expired'];
+  function firstSeg(d){ return segOrder.find(k=>d[k]>0); }
+  function lastSeg(d){ for(let i=segOrder.length-1;i>=0;i--){ if(d[segOrder[i]]>0) return segOrder[i]; } return null; }
+  function borderFor(segKey){
+    return {
+      color:empData.map(d=>d.unavailable?UNAVAIL_COLOR:'rgba(0,0,0,0)'),
+      width:empData.map(d=>{
+        if(!d.unavailable) return 0;
+        const w={top:UNAVAIL_W,bottom:UNAVAIL_W,left:0,right:0};
+        if(firstSeg(d)===segKey) w.right=UNAVAIL_W;
+        if(lastSeg(d)===segKey)  w.left=UNAVAIL_W;
+        return w;
+      }),
+    };
+  }
+  const bG=borderFor('g'),bO=borderFor('o'),bN=borderFor('neverDone'),bE=borderFor('expired');
   barChartInst=new Chart(document.getElementById('barChart').getContext('2d'),{
     type:'bar',
     data:{labels,datasets:[
-      {label:'בתוקף',data:empData.map(d=>d.g),backgroundColor:'#38a169',borderColor:unavailBorders,borderWidth:unavailBorderWidths,borderSkipped:false},
-      {label:'מתקרב',data:empData.map(d=>d.o),backgroundColor:'#e6a817',borderColor:unavailBorders,borderWidth:unavailBorderWidths,borderSkipped:false},
-      {label:'טרם בוצע',data:empData.map(d=>d.neverDone),backgroundColor:'#e53e3e',borderColor:unavailBorders,borderWidth:unavailBorderWidths,borderSkipped:false},
-      {label:'פג תוקף',data:empData.map(d=>d.expired),backgroundColor:'#ff1a1a',borderColor:unavailBorders,borderWidth:unavailBorderWidths,borderSkipped:false},
+      {label:'בתוקף',data:empData.map(d=>d.g),backgroundColor:'#38a169',borderColor:bG.color,borderWidth:bG.width,borderSkipped:false},
+      {label:'מתקרב',data:empData.map(d=>d.o),backgroundColor:'#e6a817',borderColor:bO.color,borderWidth:bO.width,borderSkipped:false},
+      {label:'טרם בוצע',data:empData.map(d=>d.neverDone),backgroundColor:'#e53e3e',borderColor:bN.color,borderWidth:bN.width,borderSkipped:false},
+      {label:'פג תוקף',data:empData.map(d=>d.expired),backgroundColor:'#ff1a1a',borderColor:bE.color,borderWidth:bE.width,borderSkipped:false},
     ]},
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
-      scales:{x:{stacked:true,min:0,max:maxTotal,ticks:{stepSize:1,font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},color:(ctx)=>empData[ctx.index]&&empData[ctx.index].unavailable?'#8b5cf6':'#666'}}}}
+      scales:{x:{stacked:true,min:0,max:maxTotal,ticks:{stepSize:1,font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},color:(ctx)=>empData[ctx.index]&&empData[ctx.index].unavailable?'#7c3aed':'#666'}}}}
   });
 
-  // Pie — overall distribution
+  // Pie — available quals in the normal 4 slices; unavailable quals as up to 4
+  // extra sub-slices (same status colors) each with a thick purple border.
   if(pieChartInst) pieChartInst.destroy();
+  const pieLabels=['בתוקף','מתקרב לפקיעה','טרם בוצע','פג תוקף'];
+  const pieData=[totalG,totalO,totalNeverDone,totalExpired];
+  const pieColors=['#38a169','#e6a817','#e53e3e','#ff1a1a'];
+  const pieBorderC=['#fff','#fff','#fff','#fff'];
+  const pieBorderW=[2,2,2,2];
+  const uSlices=[
+    {label:'לא זמין - בתוקף',val:uG,color:'#38a169'},
+    {label:'לא זמין - מתקרב',val:uO,color:'#e6a817'},
+    {label:'לא זמין - טרם בוצע',val:uNeverDone,color:'#e53e3e'},
+    {label:'לא זמין - פג תוקף',val:uExpired,color:'#ff1a1a'},
+  ];
+  uSlices.forEach(s=>{
+    if(s.val>0){
+      pieLabels.push(s.label);
+      pieData.push(s.val);
+      pieColors.push(s.color);
+      pieBorderC.push('#7c3aed');
+      pieBorderW.push(4);
+    }
+  });
+  const sliceNumberPlugin={
+    id:'sliceNumbers',
+    afterDatasetsDraw(chart){
+      const {ctx}=chart;
+      const meta=chart.getDatasetMeta(0);
+      meta.data.forEach((arc,i)=>{
+        const val=chart.data.datasets[0].data[i];
+        if(!val) return;
+        const {x,y}=arc.tooltipPosition();
+        ctx.save();
+        ctx.fillStyle='#fff';
+        ctx.font='700 14px Segoe UI, Arial, sans-serif';
+        ctx.textAlign='center';
+        ctx.textBaseline='middle';
+        ctx.shadowColor='rgba(0,0,0,.35)';
+        ctx.shadowBlur=3;
+        ctx.fillText(String(val),x,y);
+        ctx.restore();
+      });
+    }
+  };
   pieChartInst=new Chart(document.getElementById('pieChart').getContext('2d'),{
     type:'doughnut',
-    data:{labels:['בתוקף','מתקרב לפקיעה','טרם בוצע','פג תוקף'],datasets:[{data:[totalG,totalO,totalNeverDone,totalExpired],backgroundColor:['#38a169','#e6a817','#e53e3e','#ff1a1a'],borderWidth:0}]},
-    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}
+    data:{labels:pieLabels,datasets:[{
+      data:pieData,
+      backgroundColor:pieColors,
+      borderColor:pieBorderC,
+      borderWidth:pieBorderW
+    }]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}},
+    plugins:[sliceNumberPlugin]
   });
 
   // Table
@@ -1993,7 +2074,11 @@ window.renderMasterView=async function(){
     if(d.unavailable) tr.className='row-unavailable';
     else if(d.r>0) tr.style.background='#fff5f5';
     const availHtml=d.unavailable
-      ?'<span class="unavailable-badge">לא זמין עד '+formatDate(d.unavailRecord.endDate)+'</span>'
+      ?'<span class="unavailable-badge">לא זמין</span>'+
+        '<div style="font-size:11px;color:#6b21a8;margin-top:3px;line-height:1.5;">'+
+          '<div>📅 '+formatDate(d.unavailRecord.startDate)+' — '+formatDate(d.unavailRecord.endDate)+'</div>'+
+          (d.unavailRecord.reason?'<div>📝 '+d.unavailRecord.reason+'</div>':'')+
+        '</div>'
       :'<span class="available-badge">זמין</span>';
     tr.innerHTML=
       '<td data-label="עובד" style="font-weight:700;">'+d.emp.name+'</td>'+
@@ -2009,6 +2094,22 @@ window.renderMasterView=async function(){
 window.showDetail=async function(empId,empName){
   const rows=sortByUrgency(await loadEmpQualData(empId));
   document.getElementById('detail-title').textContent='פרטי '+empName;
+  // Availability banner
+  const availBanner=document.getElementById('detail-availability');
+  const unavailability=await getUnavailability();
+  const uRec=unavailability[empId];
+  if(uRec && isCurrentlyUnavailable(uRec)){
+    availBanner.style.cssText='display:block;background:#ede9fe;border:1.5px solid #8b5cf6;border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem;';
+    availBanner.innerHTML=
+      '<div style="font-size:14px;font-weight:700;color:#6b21a8;margin-bottom:4px;">🚫 עובד לא זמין</div>'+
+      '<div style="font-size:13px;color:#6b21a8;line-height:1.7;">'+
+        '<div>📅 מתאריך <b>'+formatDate(uRec.startDate)+'</b> עד <b>'+formatDate(uRec.endDate)+'</b></div>'+
+        (uRec.reason?'<div>📝 סיבה: <b>'+uRec.reason+'</b></div>':'')+
+      '</div>';
+  } else {
+    availBanner.style.display='none';
+    availBanner.innerHTML='';
+  }
   const tbody=document.getElementById('detail-body');
   tbody.innerHTML='';
   rows.forEach((row,i)=>{
